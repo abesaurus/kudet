@@ -305,21 +305,6 @@ nav.scrolled{border-bottom:1px solid var(--rule);background:rgba(255,255,255,.96
 .hc-val.mono{font-family:var(--mono);font-size:12px;font-weight:500}
 @media(max-width:640px){.hero-contract{width:100%;justify-content:center}}
 
-.token-bar-section{
-  position:relative;z-index:2;padding:22px clamp(16px,3.4vw,44px);
-  background:var(--bg2);border-bottom:1px solid var(--line,var(--rule-strong));
-}
-.token-bar{
-  max-width:1120px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px 28px;align-items:center;
-  justify-content:center;
-}
-.tb-item{display:flex;flex-direction:column;gap:2px}
-.tb-lbl{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gray,#5c6b61)}
-.tb-val{font-weight:600;font-size:14px;color:var(--ink,#0a100c)}
-.tb-val.mono{font-family:var(--mono);font-size:12.5px;font-weight:500}
-.tb-val.sm{font-size:11.5px;opacity:.85}
-@media(max-width:640px){.token-bar{gap:12px 20px;justify-content:flex-start}.tb-item{min-width:calc(50% - 20px)}}
-
 /* ============ SECTION CHROME ============ */
 section{position:relative;z-index:2;padding:clamp(60px,8vw,110px) clamp(16px,3.4vw,44px)}
 section:nth-child(even){background:var(--bg2)}
@@ -1011,28 +996,6 @@ section:nth-child(even){background:var(--bg2)}
   </div>
   <div class="hero-dots" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
 </header>
-
-<!-- ============ TOKEN INFO ============ -->
-<section class="token-bar-section">
-  <div class="token-bar">
-    <div class="tb-item">
-      <span class="tb-lbl">Ticker</span>
-      <span class="tb-val">$HYBRID</span>
-    </div>
-    <div class="tb-item">
-      <span class="tb-lbl">Chain</span>
-      <span class="tb-val">Robinhood (4663)</span>
-    </div>
-    <div class="tb-item">
-      <span class="tb-lbl">Contract (CA)</span>
-      <span class="tb-val mono" id="caDisplay">Not live yet</span>
-    </div>
-    <div class="tb-item">
-      <span class="tb-lbl">Treasury</span>
-      <span class="tb-val mono sm">0x3dCc8fBeA888D189D25949709c9B47D8b7C72788</span>
-    </div>
-  </div>
-</section>
 
 <!-- ============ HOW IT WORKS ============ -->
 <section id="how">
