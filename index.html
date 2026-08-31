@@ -1127,7 +1127,7 @@ section:nth-child(even){background:var(--bg2)}
   var modal = document.getElementById('cardModal');
   var modalBody = document.getElementById('modalBody');
   var modalClose = document.getElementById('modalClose');
-  var API = window.HC_API_BASE || 'http://localhost:4190';
+  var API = window.HC_API_BASE || (location.protocol + '//' + location.hostname + ':4190');
   var selectedAsset = 'USDG';
   var selectedAmt = null;
   var quoteData = null;
@@ -1233,22 +1233,45 @@ section:nth-child(even){background:var(--bg2)}
       }
       // request accounts
       await window.ethereum.request({ method: 'eth_requestAccounts' });
-      // ensure chain 4663
-      try {
-        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x1237' }] });
-      } catch (e) {
-        if (e.code === 4902) {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: '0x1237',
-              chainName: 'Robinhood Chain',
-              nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-              rpcUrls: ['https://rpc.mainnet.chain.robinhood.com'],
-              blockExplorerUrls: ['https://robinhoodchain.blockscout.com'],
-            }],
-          });
+      // ensure chain 4663 — check first, switch only if needed
+      var curChain = '0x0';
+      try { curChain = await window.ethereum.request({ method: 'eth_chainId' }); } catch (e2) {}
+      if (curChain !== '0x1237') {
+        try {
           await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x1237' }] });
+        } catch (e) {
+          if (e && (e.code === 4902 || String(e.message||'').indexOf('4902') !== -1)) {
+            try {
+              await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [{
+                  chainId: '0x1237',
+                  chainName: 'Robinhood Chain',
+                  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+                  rpcUrls: ['https://rpc.mainnet.chain.robinhood.com'],
+                  blockExplorerUrls: ['https://robinhoodchain.blockscout.com'],
+                }],
+              });
+              await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x1237' }] });
+            } catch (e2) {
+              // auto-add failed — give manual instructions instead of raw wallet error
+              modalBody.innerHTML =
+                '<div class="modal-title">Add Robinhood Chain manually</div>' +
+                '<div class="modal-sub">Your wallet could not switch automatically. Add the network manually, then press retry.</div>' +
+                '<div class="pay-summary"><div class="pay-row"><span class="k">Chain ID</span><span class="v mono">4663</span></div><div class="pay-row"><span class="k">RPC</span><span class="v mono" style="font-size:11px">rpc.mainnet.chain.robinhood.com</span></div></div>' +
+                '<button class="modal-cta" id="modalRetry">RETRY</button>';
+              document.getElementById('modalRetry').addEventListener('click', function(){ showStep2(); });
+              return;
+            }
+          } else {
+            // unknown switch error — surface cleanly
+            modalBody.innerHTML =
+              '<div class="modal-title">Could not switch chain</div>' +
+              '<div class="modal-sub" style="color:var(--red)">' + escapeHtml(e.message || String(e)) + '</div>' +
+              '<button class="modal-cta" id="modalRetry">RETRY</button>';
+            document.getElementById('modalRetry').addEventListener('click', function(){ showStep2(); });
+            return;
+          }
         }
       }
 
