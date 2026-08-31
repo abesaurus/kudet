@@ -293,6 +293,18 @@ nav.scrolled{border-bottom:1px solid var(--rule);background:rgba(255,255,255,.96
 .hero-dots i.on{background:var(--green);box-shadow:0 0 10px rgba(0,200,5,.6);width:22px;border-radius:4px}
 
 /* ============ TOKEN BAR ============ */
+.hero-contract{
+  display:flex;align-items:center;gap:8px;margin:14px 0 0;
+  padding:8px 14px;border:1px solid var(--rule-strong);border-radius:999px;
+  background:var(--panel);width:fit-content;
+}
+.hc-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px rgba(0,200,5,.7);animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.hc-label{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gray,#5c6b61)}
+.hc-val{font-size:13px;font-weight:600;color:var(--ink,#0a100c)}
+.hc-val.mono{font-family:var(--mono);font-size:12px;font-weight:500}
+@media(max-width:640px){.hero-contract{width:100%;justify-content:center}}
+
 .token-bar-section{
   position:relative;z-index:2;padding:22px clamp(16px,3.4vw,44px);
   background:var(--bg2);border-bottom:1px solid var(--line,var(--rule-strong));
@@ -948,6 +960,11 @@ section:nth-child(even){background:var(--bg2)}
       </h1>
       <p>Load ETH, USDG or tokenized stocks on Robinhood Chain. Spend anywhere cards are accepted. Your balance keeps earning yield in the background — right up to the moment you swipe.</p>
       <a class="trial-button js-get-card" href="#cta">GET CARD <span class="arr">→</span></a>
+      <div class="hero-contract">
+        <span class="hc-dot"></span>
+        <span class="hc-label">Contract</span>
+        <span class="hc-val mono">Not live yet</span>
+      </div>
       <div class="hero-stats">
         <div class="stat"><div class="num">5.4%</div><div class="lbl">APY on balance</div></div>
         <div class="stat"><div class="num">~2s</div><div class="lbl">To spendable</div></div>
@@ -1008,7 +1025,7 @@ section:nth-child(even){background:var(--bg2)}
     </div>
     <div class="tb-item">
       <span class="tb-lbl">Contract (CA)</span>
-      <span class="tb-val mono" id="caDisplay">CA_IS_PENDING</span>
+      <span class="tb-val mono" id="caDisplay">Not live yet</span>
     </div>
     <div class="tb-item">
       <span class="tb-lbl">Treasury</span>
