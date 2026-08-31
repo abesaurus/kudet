@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docs — Hybrid Cash</title>
+<style>
+  :root{--bg:#f5f7f5;--card:#ffffff;--ink:#0a100c;--gray:#5c6b61;--green:#00C805;--line:#e4e9e4}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.7}
+  .wrap{max-width:760px;margin:0 auto;padding:48px 24px 80px}
+  .logo{display:flex;align-items:center;gap:10px;margin-bottom:32px}
+  .logo img{height:28px;width:auto}
+  .logo span{font-weight:700;letter-spacing:-.02em}
+  h1{font-size:34px;letter-spacing:-.03em;margin-bottom:8px}
+  .sub{color:var(--gray);font-size:15px;margin-bottom:32px}
+  h2{font-size:19px;margin:32px 0 10px;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+  h2 .n{color:var(--green);font-family:ui-monospace,monospace;font-size:13px;background:#eaf8ec;border:1px solid #c9efd0;border-radius:6px;padding:1px 8px}
+  p,li{color:#243028;font-size:15px;margin-bottom:10px}
+  ul{padding-left:20px;margin-bottom:12px}
+  code{background:#eef1ee;border:1px solid #e0e5e0;border-radius:5px;padding:1px 6px;font-size:13px;font-family:ui-monospace,monospace;word-break:break-all}
+  .box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:12px 0}
+  .box .t{font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);margin-bottom:6px}
+  a{color:var(--green);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .back{display:inline-block;margin-bottom:24px;color:var(--gray);font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/">← Back to Hybrid Cash</a>
+  <div class="logo">
+    <img src="assets/logo.png" alt="Hybrid Cash">
+    <span>Hybrid Cash</span>
+  </div>
+  <h1>Documentation</h1>
+  <div class="sub">Everything you need to know about the card that earns while you spend.</div>
+
+  <h2><span class="n">01</span> What is Hybrid Cash?</h2>
+  <p>Hybrid Cash is a self-custodial virtual card built on <strong>Robinhood Chain (chain ID 4663)</strong>. Connect your wallet, load crypto, and get a virtual card whose balance keeps earning yield in the background until you spend it.</p>
+
+  <h2><span class="n">02</span> Getting a card</h2>
+  <ol>
+    <li><strong>Connect wallet</strong> — click <em>GET CARD</em> and connect any EVM wallet (e.g. Robinhood Wallet, MetaMask).</li>
+    <li><strong>Sign in</strong> — a gas-free signature saves your address so your card persists across visits.</li>
+    <li><strong>Deposit</strong> — load USDG, ETH, or tokenized stocks as collateral.</li>
+    <li><strong>Get your card</strong> — your virtual card is generated instantly after confirmation.</li>
+  </ol>
+  <div class="box">
+    <div class="t">Fees</div>
+    New card: <strong>$5 one-time</strong> · Top-up: <strong>$0</strong> · Gas: <strong>$0</strong>
+  </div>
+
+  <h2><span class="n">03</span> Supported assets</h2>
+  <ul>
+    <li><code>USDG</code> — Global Dollar, stablecoin (6 decimals)</li>
+    <li><code>ETH</code> — native Ether</li>
+    <li><code>WETH</code>, tokenized stocks (NVDA, TSLA, AAPL)</li>
+  </ul>
+
+  <h2><span class="n">04</span> How yield works</h2>
+  <p>Your loaded balance is deployed into on-chain lending markets automatically, earning variable yield right up to the moment you spend. Yield is <strong>not guaranteed</strong> and fluctuates with market conditions.</p>
+
+  <h2><span class="n">05</span> Cards &amp; security</h2>
+  <p>Card numbers, CVV, and expiry are deterministically generated from your card ID — never stored server-side. You control the card; we never touch your private keys. Virtual cards are <strong>simulated representations</strong> until issuance by a licensed partner.</p>
+
+  <h2><span class="n">06</span> Contract &amp; token</h2>
+  <div class="box">
+    <div class="t">Ticker</div>
+    <code>$HYBRID</code>
+  </div>
+  <div class="box">
+    <div class="t">Contract address (CA)</div>
+    <code>CA_IS_PENDING</code>
+  </div>
+
+  <h2><span class="n">07</span> Support</h2>
+  <p>Reach us on X at <a href="https://x.com/GetHybridCard" target="_blank" rel="noopener">@GetHybridCard</a>. Read the <a href="terms.html">Terms of Service</a>.</p>
+</div>
+</body>
+</html>
