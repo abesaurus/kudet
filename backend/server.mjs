@@ -104,10 +104,10 @@ app.get('/api/assets', (req, res) => {
   res.json({ treasury: TREASURY, assets: Object.values(ASSETS) });
 });
 
-// POST /api/quote  { asset: "USDG"|"ETH"|"WETH", amountUsd: number }
+// POST /api/quote  { asset: "USDG"|"ETH"|"WETH", amountUsd: number, kind?: "issue"|"topup" }
 app.post('/api/quote', async (req, res) => {
   try {
-    const { asset, amountUsd } = req.body || {};
+    const { asset, amountUsd, kind = 'issue' } = req.body || {};
     const meta = ASSETS[asset];
     if (!meta || !meta.available) return res.status(400).json({ error: 'Unsupported asset' });
     const amount = Number(amountUsd);
@@ -116,14 +116,18 @@ app.post('/api/quote', async (req, res) => {
     }
     if (amount > 1000) return res.status(400).json({ error: 'Maximum load is $1,000.00 per top-up' });
 
+    // fee: $5 one-time for new cards, free for top-ups
+    const feeUsd = kind === 'topup' ? 0 : 5;
+    const totalUsd = amount + feeUsd;
+
     // refresh ETH price when needed
     if (meta.kind !== 'stable') {
       meta.priceUsd = await fetchEthPrice();
     }
 
-    // units to send (raw token amount)
+    // units to send (raw token amount) — covers load + fee
     const units = parseUnits(
-      (amount / meta.priceUsd).toFixed(meta.decimals),
+      (totalUsd / meta.priceUsd).toFixed(meta.decimals),
       meta.decimals
     );
 
@@ -139,12 +143,15 @@ app.post('/api/quote', async (req, res) => {
 
     res.json({
       intent: intentId,
+      kind,
       asset: meta.symbol,
       token_address: meta.address,
       decimals: meta.decimals,
       symbol: meta.symbol,
       priceUsd: meta.priceUsd,
       amountUsd: amount,
+      feeUsd,
+      totalUsd,
       units: units.toString(),
       to: TREASURY,
       // for display

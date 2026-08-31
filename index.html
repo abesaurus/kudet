@@ -408,6 +408,7 @@ section:nth-child(even){background:var(--bg2)}
 .fees-table .row-label{font-weight:600;color:var(--ink)}
 .fees-table .row-sub{display:block;font-family:var(--mono);font-size:11px;color:var(--gray2);letter-spacing:.4px;margin-top:4px;font-weight:400}
 .fees-table .row-fee{font-family:var(--mono);font-size:13px;color:var(--gray)}
+.fees-table .row-fee.g{color:var(--green);font-weight:700}
 .fees-table .row-total{font-family:var(--mono);font-weight:700;font-size:16px;text-align:right;color:var(--ink);letter-spacing:-.02em}
 .fees-table .row-total.g{color:var(--green)}
 .fees-table tr.head td{
@@ -908,14 +909,14 @@ section:nth-child(even){background:var(--bg2)}
   <div class="fees-wrap reveal">
     <table class="fees-table">
       <tr class="head"><td>Card</td><td>Fee</td><td style="text-align:right">Earns APY</td></tr>
-      <tr><td class="row-label">New card — $10 load<span class="row-sub">$15.00 fee + $10 balance</span></td><td class="row-fee">$15.00</td><td class="row-total">5.4%</td></tr>
-      <tr><td class="row-label">New card — $20 load<span class="row-sub">$15.00 fee + $20 balance</span></td><td class="row-fee">$15.00</td><td class="row-total">5.4%</td></tr>
-      <tr><td class="row-label">New card — $50 load<span class="row-sub">$15.00 fee + $50 balance</span></td><td class="row-fee">$15.00</td><td class="row-total">5.4%</td></tr>
-      <tr><td class="row-label">New card — $100 load<span class="row-sub">$15.00 fee + $100 balance</span></td><td class="row-fee">$15.00</td><td class="row-total">5.4%</td></tr>
-      <tr><td class="row-label">New card — $250 load<span class="row-sub">$15.00 fee + $250 balance</span></td><td class="row-fee">$15.00</td><td class="row-total">5.4%</td></tr>
-      <tr><td class="row-label">Top-up<span class="row-sub">minimum $10.00, up to $1,000.00 per top-up</span></td><td class="row-fee">$1.50</td><td class="row-total">resumes</td></tr>
-      <tr><td class="row-label">Monthly fee<span class="row-sub">no hidden recurring costs</span></td><td class="row-fee">$0</td><td class="row-total g">FREE</td></tr>
-      <tr><td class="row-label">Network gas<span class="row-sub">paid to Robinhood Chain, shown by your wallet</span></td><td class="row-fee">at cost</td><td class="row-total">—</td></tr>
+      <tr><td class="row-label">New card — $10 load<span class="row-sub">$5.00 fee + $10 balance</span></td><td class="row-fee">$5.00</td><td class="row-total">5.4%</td></tr>
+      <tr><td class="row-label">New card — $20 load<span class="row-sub">$5.00 fee + $20 balance</span></td><td class="row-fee">$5.00</td><td class="row-total">5.4%</td></tr>
+      <tr><td class="row-label">New card — $50 load<span class="row-sub">$5.00 fee + $50 balance</span></td><td class="row-fee">$5.00</td><td class="row-total">5.4%</td></tr>
+      <tr><td class="row-label">New card — $100 load<span class="row-sub">$5.00 fee + $100 balance</span></td><td class="row-fee">$5.00</td><td class="row-total">5.4%</td></tr>
+      <tr><td class="row-label">New card — $250 load<span class="row-sub">$5.00 fee + $250 balance</span></td><td class="row-fee">$5.00</td><td class="row-total">5.4%</td></tr>
+      <tr><td class="row-label">Top-up<span class="row-sub">minimum $10.00, up to $1,000.00 per top-up</span></td><td class="row-fee g">FREE</td><td class="row-total">resumes</td></tr>
+      <tr><td class="row-label">Monthly fee<span class="row-sub">no hidden recurring costs</span></td><td class="row-fee g">FREE</td><td class="row-total g">FREE</td></tr>
+      <tr><td class="row-label">Network gas<span class="row-sub">paid to Robinhood Chain, shown by your wallet</span></td><td class="row-fee g">FREE</td><td class="row-total">—</td></tr>
     </table>
     <div class="fees-note">APY illustrative — variable, sourced from onchain lending rates. Final fee structure published at launch.</div>
   </div>
@@ -1048,7 +1049,7 @@ section:nth-child(even){background:var(--bg2)}
       </div>
 
       <button class="modal-cta" id="modalNext" disabled>CONTINUE →</button>
-      <div class="modal-note">Deposit goes to the Hybrid Cash treasury. Card balance is issued after onchain confirmation.</div>
+      <div class="modal-note">One-time $5 card fee. Top-ups free. Network gas free.</div>
     </div>
   </div>
 </div>
@@ -1183,7 +1184,7 @@ section:nth-child(even){background:var(--bg2)}
         '<div class="load-opt" data-amt="250"><div class="am">$250</div><div class="ap"></div></div>' +
       '</div>' +
       '<button class="modal-cta" id="modalNext" disabled>CONTINUE →</button>' +
-      '<div class="modal-note">Deposit goes to the Hybrid Cash treasury. Card balance issued after onchain confirmation.</div>';
+      '<div class="modal-note">One-time $5 card fee. Top-ups free. Network gas free.</div>';
   }
 
   function rebindStep1(){
@@ -1276,14 +1277,18 @@ section:nth-child(even){background:var(--bg2)}
     var q = quoteData;
     var display = Number(q.displayUnits) >= 0.001
       ? q.displayUnits + ' ' + q.symbol
-      : (Number(q.amountUsd) / Number(q.priceUsd)).toFixed(6) + ' ' + q.symbol;
+      : (Number(q.totalUsd) / Number(q.priceUsd)).toFixed(6) + ' ' + q.symbol;
+    var feeLine = Number(q.feeUsd) > 0
+      ? '<div class="pay-row"><span class="k">Card fee</span><span class="v">$' + Number(q.feeUsd).toFixed(2) + '</span></div>'
+      : '<div class="pay-row"><span class="k">Card fee</span><span class="v g">FREE</span></div>';
     modalBody.innerHTML =
       '<div class="modal-step" data-step="3">Step 3 / 3 — Review & pay</div>' +
       '<div class="modal-title">Confirm your deposit</div>' +
       '<div class="modal-sub">You\'re depositing crypto to the Hybrid Cash treasury. Review the amount, then approve in your wallet.</div>' +
       '<div class="pay-summary">' +
-        '<div class="pay-row"><span class="k">Amount</span><span class="v">' + display + '</span></div>' +
-        '<div class="pay-row"><span class="k">USD value</span><span class="v">$' + Number(q.amountUsd).toFixed(2) + '</span></div>' +
+        '<div class="pay-row"><span class="k">Load</span><span class="v">$' + Number(q.amountUsd).toFixed(2) + '</span></div>' +
+        feeLine +
+        '<div class="pay-row"><span class="k">Total</span><span class="v">' + display + '</span></div>' +
         '<div class="pay-row"><span class="k">Treasury</span><span class="v mono">' + shortAddr(q.to) + '</span></div>' +
         '<div class="pay-row"><span class="k">Chain</span><span class="v">Robinhood (4663)</span></div>' +
       '</div>' +
