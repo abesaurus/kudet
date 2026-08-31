@@ -11,421 +11,978 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#050505">
 <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #050505;
-  --bg2: #0a0f0b;
-  --panel: #0c120d;
-  --green: #00FF41;
-  --green-dim: #00b32e;
-  --red: #FF3131;
-  --red-dim: #b32222;
-  --white: #F5F5F5;
-  --gray: #8A8F98;
-  --mono: 'JetBrains Mono', 'Courier New', monospace;
-  --display: 'Space Grotesk', 'JetBrains Mono', monospace;
+/* ============ FONTS (self-hosted premium) ============ */
+@font-face{font-family:'Instrument Sans';src:url('assets/fonts/InstrumentSans-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Instrument Sans';src:url('assets/fonts/InstrumentSans-Italic.ttf') format('truetype');font-weight:400;font-style:italic;font-display:swap}
+@font-face{font-family:'Instrument Sans';src:url('assets/fonts/InstrumentSans-Bold.ttf') format('truetype');font-weight:700;font-style:normal;font-display:swap}
+@font-face{font-family:'Instrument Sans';src:url('assets/fonts/InstrumentSans-BoldItalic.ttf') format('truetype');font-weight:700;font-style:italic;font-display:swap}
+@font-face{font-family:'Instrument Serif';src:url('assets/fonts/InstrumentSerif-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Instrument Serif';src:url('assets/fonts/InstrumentSerif-Italic.ttf') format('truetype');font-weight:400;font-style:italic;font-display:swap}
+@font-face{font-family:'JetBrains Mono';src:url('assets/fonts/JetBrainsMono-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'JetBrains Mono';src:url('assets/fonts/JetBrainsMono-Bold.ttf') format('truetype');font-weight:700;font-style:normal;font-display:swap}
+
+/* ============ DESIGN TOKENS ============ */
+:root{
+  --ink:#050505;
+  --stage:#000c1e;
+  --panel:#0c120d;
+  --panel2:#0e1410;
+  --green:#00FF41;
+  --green-dim:#00b32e;
+  --red:#FF3131;
+  --white:#F5F5F5;
+  --gray:#8A8F98;
+  --gray2:#5a6168;
+  --rule:rgba(245,245,245,.08);
+  --rule-strong:rgba(245,245,245,.16);
+  --sans:'Instrument Sans',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --serif:'Instrument Serif',Georgia,serif;
+  --radius:4px;
+  --pad:clamp(14px,2.1vw,26px);
+  --card-pad:clamp(22px,3vw,40px);
+  --row-gap:clamp(48px,6vw,96px);
+  --ease:cubic-bezier(.22,1,.36,1);
+  --ease-soft:cubic-bezier(.16,1,.3,1);
 }
-* { margin:0; padding:0; box-sizing:border-box; }
-html { scroll-behavior:smooth; }
-body {
-  background: var(--bg);
-  color: var(--white);
-  font-family: var(--mono);
-  line-height:1.6;
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--ink);
+  color:var(--white);
+  font-family:var(--sans);
+  line-height:1.55;
   overflow-x:hidden;
   -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
 }
-::selection { background: var(--green); color:#000; }
+::selection{background:var(--green);color:#000}
+a{color:inherit}
 
-body::before {
-  content:""; position:fixed; inset:0; z-index:-2;
+/* ============ BACKGROUND ATMOSPHERE ============ */
+body::before{
+  content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
   background:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,255,65,.06) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 90% 110%, rgba(255,49,49,.04) 0%, transparent 60%),
-    var(--bg);
+    radial-gradient(ellipse 70% 45% at 50% -8%, rgba(0,255,65,.07) 0%, transparent 62%),
+    radial-gradient(ellipse 45% 35% at 92% 108%, rgba(0,255,65,.045) 0%, transparent 60%),
+    radial-gradient(ellipse 35% 28% at 4% 85%, rgba(255,49,49,.03) 0%, transparent 55%),
+    var(--ink);
 }
-body::after {
-  content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+body::after{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
   background-image:
     linear-gradient(rgba(0,255,65,.02) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0,255,65,.02) 1px, transparent 1px);
-  background-size:44px 44px;
+  background-size:46px 46px;
+  mask-image:radial-gradient(ellipse 90% 70% at 50% 0%, #000 30%, transparent 78%);
+  -webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 0%, #000 30%, transparent 78%);
 }
 
-nav {
-  position:fixed; top:0; left:0; right:0; z-index:20;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:16px 4vw;
-  background:rgba(5,5,5,.85);
-  backdrop-filter:blur(14px);
-  border-bottom:1px solid rgba(255,255,255,.06);
+/* ============ NAV ============ */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px clamp(16px,3.4vw,44px);
+  background:rgba(5,5,5,.72);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid transparent;
+  transition:border-color .3s,background .3s;
 }
-.nav-logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
-.nav-logo img { height:30px; width:auto; }
-.nav-links { display:flex; gap:24px; align-items:center; }
-.nav-links a { color:var(--gray); text-decoration:none; font-size:12px; letter-spacing:1px; transition:color .2s; }
-.nav-links a:hover { color:var(--green); }
-.nav-cta {
-  background:var(--green); color:#000; text-decoration:none;
-  font-size:12px; font-weight:700; letter-spacing:1px;
-  padding:9px 20px; border-radius:4px; transition:all .2s;
+nav.scrolled{border-bottom:1px solid var(--rule);background:rgba(5,5,5,.88)}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nav-logo img{height:26px;width:auto}
+.nav-links{display:flex;gap:clamp(14px,1.8vw,26px);align-items:center}
+.nav-links a{
+  color:var(--gray);text-decoration:none;
+  font-family:var(--mono);font-size:11px;font-weight:400;
+  letter-spacing:1.6px;text-transform:uppercase;
+  transition:color .25s;position:relative;
 }
-.nav-cta:hover { box-shadow:0 0 24px rgba(0,255,65,.3); }
-.menu-btn { display:none; background:none; border:1px solid var(--gray); color:var(--gray); font-family:var(--mono); font-size:14px; padding:6px 12px; border-radius:4px; cursor:pointer; }
-@media (max-width: 720px) {
-  .nav-links { display:none; position:fixed; top:63px; left:0; right:0; background:#000; flex-direction:column; padding:20px; gap:16px; border-bottom:1px solid rgba(0,255,65,.3); }
-  .nav-links.open { display:flex; }
-  .menu-btn { display:block; }
-  nav { padding:12px 5vw; }
+.nav-links a:hover{color:var(--green)}
+.nav-links a::after{
+  content:"";position:absolute;left:0;bottom:-5px;height:1px;width:0;
+  background:var(--green);transition:width .3s var(--ease);
 }
+.nav-links a:hover::after{width:100%}
+.nav-cta{
+  background:var(--green);color:#000;text-decoration:none;
+  font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:1.4px;
+  padding:9px 20px;border-radius:var(--radius);transition:all .25s;
+  border:1px solid var(--green);
+}
+.nav-cta:hover{box-shadow:0 0 26px rgba(0,255,65,.35);transform:translateY(-1px)}
+.menu-btn{
+  display:none;background:none;border:1px solid var(--rule-strong);color:var(--white);
+  font-family:var(--mono);font-size:13px;padding:7px 13px;border-radius:var(--radius);cursor:pointer;
+}
+.menu-btn:hover{border-color:var(--green);color:var(--green)}
 
-.hero {
-  min-height:100dvh;
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  padding:120px 6vw 80px; text-align:center;
+/* ============ HERO ============ */
+.hero{
+  position:relative;
+  min-height:100svh;
+  padding:calc(74px + clamp(24px,4vw,60px)) clamp(16px,3.4vw,44px) 0;
+  display:flex;flex-direction:column;
+  overflow:hidden;
 }
-.hero-badge {
-  display:inline-flex; align-items:center; gap:7px;
-  font-size:10px; letter-spacing:3px; color:var(--green);
-  border:1px solid rgba(0,255,65,.3); border-radius:999px; padding:6px 14px; margin-bottom:24px;
+/* animated sky glow */
+.hero-sky{
+  position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 55% 42% at 74% 30%, rgba(0,255,65,.10) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 32% at 88% 62%, rgba(0,255,65,.05) 0%, transparent 55%);
+}
+.hero-sky::before{
+  content:"";position:absolute;top:-30%;left:60%;width:55%;height:80%;
+  background:conic-gradient(from 180deg at 50% 50%, transparent 0deg, rgba(0,255,65,.05) 60deg, transparent 120deg);
+  animation:sky-rotate 32s linear infinite;
+}
+@keyframes sky-rotate{to{transform:rotate(360deg)}}
+
+.hero-layout{
+  position:relative;z-index:2;
+  display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);
+  gap:clamp(24px,4vw,64px);
+  align-items:center;
+  max-width:1200px;width:100%;margin:0 auto;
+  flex:1;
+}
+.hero-copy h1{
+  font-family:var(--sans);
+  font-size:clamp(40px,5.4vw,72px);
+  font-weight:700;line-height:1.02;letter-spacing:-.03em;
   text-transform:uppercase;
+  margin-bottom:clamp(18px,2.4vw,30px);
 }
-.hero-badge .dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:blink 1.2s infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
-.hero h1 {
-  font-family:var(--display);
-  font-size:clamp(40px, 8vw, 80px);
-  font-weight:700; line-height:1.05; letter-spacing:1px;
-  margin-bottom:16px; max-width:800px;
+.hero-copy h1 .accent{
+  font-family:var(--serif);
+  font-style:italic;font-weight:400;
+  text-transform:none;
+  letter-spacing:-.01em;
+  background:linear-gradient(100deg,var(--green),#7dffa4);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
 }
-.hero h1 .em { color:var(--green); }
-.hero .sub {
-  font-size:15px; color:var(--gray); letter-spacing:2px; margin-bottom:40px;
-  max-width:600px; line-height:1.5;
+.hero-copy>p{
+  color:var(--gray);
+  font-size:clamp(15px,1.25vw,17.5px);
+  max-width:52ch;line-height:1.6;
+  margin-bottom:clamp(26px,3.2vw,38px);
 }
-.hero-cta { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
-.btn {
-  display:inline-block; font-family:var(--mono); font-size:13px; font-weight:700; letter-spacing:2px;
-  padding:15px 32px; border-radius:4px; text-decoration:none; cursor:pointer; transition:all .2s;
-  border:1px solid transparent;
+.trial-button{
+  display:inline-flex;align-items:center;gap:12px;
+  background:var(--green);color:#000;text-decoration:none;
+  font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:1.8px;
+  padding:16px 30px;border-radius:var(--radius);
+  border:1px solid var(--green);
+  transition:all .3s var(--ease);
 }
-.btn-primary { background:var(--green); color:#000; }
-.btn-primary:hover { box-shadow:0 0 30px rgba(0,255,65,.35); transform:translateY(-1px); }
-.btn-ghost { background:transparent; color:var(--green); border-color:rgba(0,255,65,.35); }
-.btn-ghost:hover { background:rgba(0,255,65,.08); }
+.trial-button:hover{box-shadow:0 0 40px rgba(0,255,65,.4),0 12px 40px rgba(0,255,65,.15);transform:translateY(-2px)}
+.trial-button .arr{transition:transform .3s var(--ease)}
+.trial-button:hover .arr{transform:translateX(5px)}
+.hero-stats{
+  display:flex;gap:clamp(20px,3vw,44px);
+  margin-top:clamp(30px,4vw,52px);
+  padding-top:clamp(20px,2.6vw,30px);
+  border-top:1px solid var(--rule);
+}
+.hero-stats .stat .num{
+  font-family:var(--mono);font-size:clamp(18px,1.9vw,24px);font-weight:700;color:var(--white);
+  letter-spacing:-.02em;
+}
+.hero-stats .stat .lbl{
+  font-family:var(--mono);font-size:10px;color:var(--gray2);letter-spacing:1.6px;text-transform:uppercase;margin-top:5px;
+}
 
-/* sections */
-section { padding:90px 6vw; max-width:1100px; margin:0 auto; }
-.section-label { font-size:10px; letter-spacing:4px; color:var(--green); text-transform:uppercase; margin-bottom:10px; }
-.section-label.gray { color:var(--gray); }
-h2 {
-  font-family:var(--display); font-size:clamp(24px, 3.5vw, 38px); margin-bottom:14px; letter-spacing:1px;
+/* hero right: card visual */
+.hero-visual{position:relative;display:flex;justify-content:center;align-items:center;min-height:clamp(340px,40vw,480px)}
+.hero-card{
+  position:relative;width:min(420px,82%);aspect-ratio:1.586;
+  border-radius:18px;
+  background:linear-gradient(135deg,#101510 0%,#0a0d0b 55%,#070907 100%);
+  border:1px solid var(--rule-strong);
+  box-shadow:0 30px 80px rgba(0,0,0,.65),0 0 60px rgba(0,255,65,.06),inset 0 1px 0 rgba(255,255,255,.06);
+  padding:clamp(18px,2.6vw,28px);
+  display:flex;flex-direction:column;justify-content:space-between;
+  animation:card-float 7s var(--ease-soft) infinite;
+  transform-style:preserve-3d;
 }
-h2 .em { color:var(--green); }
-.section-sub { color:var(--gray); font-size:14px; max-width:600px; margin-bottom:40px; }
+@keyframes card-float{
+  0%,100%{transform:translateY(0) rotate(-1.2deg)}
+  50%{transform:translateY(-14px) rotate(1deg)}
+}
+.hero-card::before{
+  content:"";position:absolute;inset:0;border-radius:18px;pointer-events:none;
+  background:linear-gradient(115deg,transparent 30%,rgba(0,255,65,.12) 46%,transparent 62%);
+  transform:translateX(-120%);
+  animation:sheen 6.5s var(--ease) infinite;
+}
+@keyframes sheen{0%,55%{transform:translateX(-130%)}85%,100%{transform:translateX(130%)}}
+.hero-card .chip{
+  width:44px;height:32px;border-radius:6px;
+  background:linear-gradient(135deg,#e8e8e8,#9a9a9a 45%,#c8c8c8);
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.7),0 2px 6px rgba(0,0,0,.4);
+  position:relative;overflow:hidden;
+}
+.hero-card .chip::after{
+  content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent 0 3px,rgba(0,0,0,.18) 3px 5px);
+}
+.hero-card .card-brand{
+  display:flex;align-items:center;justify-content:space-between;
+}
+.hero-card .card-brand .word{
+  font-family:var(--mono);font-weight:700;font-size:clamp(15px,1.8vw,19px);letter-spacing:3px;color:var(--white);
+}
+.hero-card .card-brand .word em{color:var(--green);font-style:normal}
+.hero-card .card-brand .ticker{
+  font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--gray2);
+  border:1px solid var(--rule-strong);padding:4px 8px;border-radius:3px;
+}
+.hero-card .card-num{
+  font-family:var(--mono);font-size:clamp(15px,1.7vw,19px);letter-spacing:3px;color:rgba(245,245,245,.92);
+  text-shadow:0 0 14px rgba(0,255,65,.25);
+}
+.hero-card .card-foot{
+  display:flex;justify-content:space-between;align-items:flex-end;
+}
+.hero-card .card-foot .lbl{font-family:var(--mono);font-size:8px;letter-spacing:1.6px;color:var(--gray2);text-transform:uppercase}
+.hero-card .card-foot .val{font-family:var(--mono);font-size:13px;letter-spacing:1.5px;color:var(--white);margin-top:2px}
+.hero-card .card-foot .contact{font-family:var(--serif);font-style:italic;font-size:clamp(13px,1.5vw,16px);color:rgba(245,245,245,.75)}
 
-/* steps */
-.steps { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:18px; }
-.step {
-  border:1px solid rgba(255,255,255,.07); border-radius:8px; padding:28px 24px;
-  background:linear-gradient(180deg, rgba(255,255,255,.02), transparent);
-  transition:border-color .2s;
+/* glass insight card */
+.insight-card{
+  position:absolute;z-index:3;
+  bottom:clamp(6px,2vw,22px);left:-clamp(4px,1vw,14px);
+  width:min(250px,58%);
+  padding:16px 18px;
+  border-radius:10px;
+  background:rgba(18,24,20,.62);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(0,255,65,.14);
+  box-shadow:0 18px 50px rgba(0,0,0,.55);
+  animation:insight-in .9s var(--ease-soft) 1.15s both;
 }
-.step:hover { border-color:rgba(0,255,65,.25); }
-.step .num { font-size:28px; font-weight:800; color:rgba(0,255,65,.15); font-family:var(--display); margin-bottom:6px; }
-.step .step-label { font-size:10px; letter-spacing:3px; color:var(--green); text-transform:uppercase; margin-bottom:8px; }
-.step h3 { font-family:var(--display); font-size:17px; margin-bottom:8px; }
-.step p { font-size:13px; color:var(--gray); line-height:1.5; }
+.insight-card .ic-top{
+  display:flex;justify-content:space-between;align-items:center;
+  font-family:var(--mono);font-size:9px;letter-spacing:1.8px;color:var(--green);
+  text-transform:uppercase;margin-bottom:12px;
+}
+.insight-card .ic-top .dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.insight-row{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px solid rgba(245,245,245,.05)}
+.insight-row:last-child{border-bottom:none}
+.insight-row .k{font-family:var(--mono);font-size:9.5px;letter-spacing:1px;color:var(--gray)}
+.insight-row .v{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--white)}
+.insight-row .v.green{color:var(--green)}
+.insight-row .v.red{color:var(--red)}
 
-/* features */
-.features { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:16px; }
-.feature {
-  border:1px solid rgba(255,255,255,.07); border-radius:8px; padding:26px 24px;
-  background:linear-gradient(180deg, rgba(255,255,255,.02), transparent);
-  transition:border-color .2s;
+/* trusted marquee */
+.trusted-block{
+  position:relative;z-index:2;
+  max-width:1200px;width:100%;margin:clamp(30px,4vw,56px) auto 0;
+  padding-bottom:clamp(18px,2.6vw,30px);
+  border-top:1px solid var(--rule);
+  padding-top:clamp(18px,2.6vw,26px);
 }
-.feature:hover { border-color:rgba(0,255,65,.25); }
-.feature .icon { font-size:10px; letter-spacing:2px; color:var(--green); margin-bottom:10px; text-transform:uppercase; }
-.feature h3 { font-family:var(--display); font-size:16px; margin-bottom:6px; }
-.feature p { font-size:13px; color:var(--gray); }
+.trusted-block .tb-label{
+  text-align:center;
+  font-family:var(--mono);font-size:10px;letter-spacing:2.4px;color:var(--gray2);
+  text-transform:uppercase;margin-bottom:16px;
+}
+.trusted-marquee{
+  overflow:hidden;position:relative;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+}
+.trusted-track{
+  display:flex;gap:clamp(18px,2.6vw,40px);width:max-content;
+  animation:marquee 30s linear infinite;
+}
+@keyframes marquee{to{transform:translateX(-50%)}}
+.trusted-track span{
+  font-family:var(--mono);font-size:11px;letter-spacing:2.4px;color:var(--gray);
+  text-transform:uppercase;white-space:nowrap;
+  display:flex;align-items:center;gap:10px;
+}
+.trusted-track span::before{content:"◆";font-size:7px;color:var(--green);opacity:.7}
 
-/* pricing */
-.pricing-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:14px; margin-bottom:30px; }
-.pricing-card {
-  border:1px solid rgba(255,255,255,.07); border-radius:8px; padding:22px 20px;
-  background:linear-gradient(180deg, rgba(255,255,255,.02), transparent);
-  transition:border-color .2s;
+/* hero dots */
+.hero-dots{
+  position:absolute;z-index:3;left:50%;bottom:16px;transform:translateX(-50%);
+  display:flex;gap:8px;
 }
-.pricing-card:hover { border-color:rgba(0,255,65,.25); }
-.pricing-card .p-label { font-size:10px; letter-spacing:2px; color:var(--gray); text-transform:uppercase; margin-bottom:10px; }
-.pricing-card .p-value { font-size:20px; font-weight:800; color:var(--green); font-family:var(--display); }
-.pricing-card .p-value.gray { color:var(--gray); }
-.pricing-card .p-desc { font-size:12px; color:var(--gray); margin-top:6px; }
+.hero-dots i{width:7px;height:7px;display:block;border-radius:50%;background:var(--gray2);transition:all .3s;cursor:pointer}
+.hero-dots i.on{background:var(--green);box-shadow:0 0 10px rgba(0,255,65,.6);width:22px;border-radius:4px}
 
-/* faq */
-.faq-list { display:flex; flex-direction:column; gap:6px; }
-.faq-item { border:1px solid rgba(255,255,255,.07); border-radius:6px; overflow:hidden; }
-.faq-q {
-  display:flex; justify-content:space-between; align-items:center;
-  width:100%; padding:16px 20px; background:none; border:none; cursor:pointer;
-  font-family:var(--mono); font-size:13px; color:var(--white); text-align:left; letter-spacing:.5px;
-  transition:background .2s;
+/* ============ SECTION CHROME ============ */
+section{position:relative;z-index:2;padding:clamp(60px,8vw,110px) clamp(16px,3.4vw,44px)}
+.section-kicker{
+  font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--green);
+  text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:14px;
 }
-.faq-q:hover { background:rgba(255,255,255,.03); }
-.faq-q .arrow { transition:transform .2s; color:var(--green); font-size:12px; }
-.faq-item.open .faq-q .arrow { transform:rotate(180deg); }
-.faq-a {
-  max-height:0; overflow:hidden; transition:max-height .3s ease, padding .3s;
-  padding:0 20px; color:var(--gray); font-size:13px; line-height:1.5;
+.section-kicker::before{content:"";width:26px;height:1px;background:var(--green);opacity:.6}
+.section-head{max-width:900px;margin:0 auto;text-align:center;margin-bottom:clamp(40px,5vw,68px)}
+.section-head .section-kicker{justify-content:center}
+.section-head .section-kicker::before{display:none}
+.section-head h2{
+  font-family:var(--sans);font-size:clamp(28px,3.8vw,48px);font-weight:700;
+  letter-spacing:-.03em;line-height:1.05;text-transform:uppercase;
 }
-.faq-item.open .faq-a { max-height:300px; padding:0 20px 16px; }
+.section-head h2 .serif{
+  font-family:var(--serif);font-style:italic;font-weight:400;text-transform:none;
+  background:linear-gradient(100deg,var(--green),#7dffa4);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;
+}
+.section-head>p{
+  color:var(--gray);max-width:56ch;margin:16px auto 0;
+  font-size:clamp(14.5px,1.2vw,16.5px);line-height:1.65;
+}
 
-/* cta */
-.cta-section { text-align:center; padding:80px 6vw; }
-.cta-box {
-  border:1px solid rgba(0,255,65,.2); border-radius:12px; padding:48px 32px; max-width:700px; margin:0 auto;
-  background:radial-gradient(ellipse 60% 60% at 50% 0%, rgba(0,255,65,.05), transparent);
+/* ============ HOW IT WORKS ============ */
+.steps-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:clamp(12px,1.6vw,22px);
+  max-width:1200px;margin:0 auto;
 }
-.cta-box h2 { margin-bottom:10px; }
-.cta-box p { color:var(--gray); font-size:14px; margin-bottom:28px; }
-.cta-actions { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
-
-/* footer */
-footer {
-  border-top:1px solid rgba(255,255,255,.06);
-  padding:36px 6vw 24px; max-width:1100px; margin:0 auto;
+.step-card{
+  position:relative;
+  background:var(--panel);
+  border:1px solid var(--rule);
+  border-radius:calc(var(--radius) + 2px);
+  padding:clamp(20px,2.4vw,30px);
+  transition:all .35s var(--ease);
+  overflow:hidden;
+  display:flex;flex-direction:column;
 }
-.footer-grid { display:grid; grid-template-columns:2fr 1fr 1fr; gap:30px; margin-bottom:28px; }
-.footer-brand .logo { font-family:var(--display); font-size:18px; color:var(--green); letter-spacing:2px; margin-bottom:8px; }
-.footer-brand p { font-size:11px; color:var(--gray); max-width:280px; }
-.footer-col h4 { font-size:10px; letter-spacing:3px; color:var(--gray); text-transform:uppercase; margin-bottom:12px; }
-.footer-col a { display:block; font-size:12px; color:var(--gray); text-decoration:none; margin-bottom:8px; transition:color .2s; }
-.footer-col a:hover { color:var(--green); }
-.footer-bar { border-top:1px solid rgba(255,255,255,.04); padding-top:16px; text-align:center; font-size:10px; color:var(--gray); letter-spacing:2px; }
-.footer-bar .warn { color:var(--red-dim); margin-top:6px; font-size:9px; letter-spacing:1px; }
+.step-card:hover{transform:translateY(-5px);border-color:rgba(0,255,65,.28);box-shadow:0 20px 50px rgba(0,0,0,.5),0 0 30px rgba(0,255,65,.05)}
+.step-card .step-no{
+  font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--green);
+  text-transform:uppercase;margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;
+}
+.step-card .step-no::before{content:"";width:14px;height:1px;background:var(--green);opacity:.5}
+.step-card h3{
+  font-family:var(--sans);font-size:clamp(16px,1.5vw,19px);font-weight:700;
+  letter-spacing:-.01em;text-transform:uppercase;margin-bottom:10px;
+}
+.step-card p{color:var(--gray);font-size:14px;line-height:1.6}
+.step-card .step-visual{
+  margin-top:auto;padding-top:20px;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.6px;color:var(--gray);
+}
+.step-card .mock{
+  background:rgba(0,0,0,.32);border:1px solid rgba(245,245,245,.05);border-radius:6px;
+  padding:12px 14px;margin-top:10px;line-height:1.9;
+}
+.step-card .mock .m-row{display:flex;justify-content:space-between}
+.step-card .mock .m-row .k{color:var(--gray2)}
+.step-card .mock .m-row .v{color:var(--white)}
+.step-card .mock .m-row .v.g{color:var(--green)}
+.step-card .mock .confirm{
+  color:var(--green);display:flex;align-items:center;gap:6px;margin-top:4px;
+}
+.step-card .mock .confirm::before{content:"✓";font-weight:700}
+.step-card .card-mini{
+  margin-top:10px;background:linear-gradient(135deg,#111,#0a0a0a);
+  border:1px solid rgba(0,255,65,.2);border-radius:7px;padding:12px 14px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.step-card .card-mini .c-word{font-weight:700;letter-spacing:2px;font-size:11px}
+.step-card .card-mini .c-word em{color:var(--green);font-style:normal}
+.step-card .card-mini .c-num{color:var(--gray);letter-spacing:2px;font-size:10px}
+.step-card .card-mini .c-bal{color:var(--green);font-weight:700;font-size:12px}
 
-@media (max-width: 720px) {
-  section { padding:64px 5vw; }
-  .footer-grid { grid-template-columns:1fr; gap:20px; }
-  .pricing-grid { grid-template-columns:1fr 1fr; }
+/* ============ FEATURES ============ */
+.features-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:clamp(12px,1.6vw,22px);
+  max-width:1200px;margin:0 auto;
+}
+.feature-card{
+  position:relative;
+  background:linear-gradient(180deg,var(--panel) 0%,rgba(12,18,13,.6) 100%);
+  border:1px solid var(--rule);
+  border-radius:calc(var(--radius) + 2px);
+  padding:clamp(22px,2.6vw,34px);
+  transition:all .35s var(--ease);
+  overflow:hidden;
+}
+.feature-card::after{
+  content:"";position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,255,65,.4),transparent);
+  opacity:0;transition:opacity .35s;
+}
+.feature-card:hover{transform:translateY(-4px);border-color:rgba(0,255,65,.25);box-shadow:0 18px 44px rgba(0,0,0,.5)}
+.feature-card:hover::after{opacity:1}
+.feature-card .f-no{
+  font-family:var(--mono);font-size:11px;letter-spacing:1.6px;color:var(--gray2);
+  margin-bottom:20px;display:block;
+}
+.feature-card h3{
+  font-family:var(--sans);font-size:clamp(15.5px,1.4vw,18px);font-weight:700;
+  letter-spacing:-.01em;text-transform:uppercase;margin-bottom:10px;
+}
+.feature-card p{color:var(--gray);font-size:13.5px;line-height:1.65}
+
+/* ============ FEES ============ */
+.fees-wrap{max-width:860px;margin:0 auto}
+.fees-table{
+  width:100%;border-collapse:collapse;
+  font-size:15px;
+}
+.fees-table tr{border-bottom:1px solid var(--rule);transition:background .3s}
+.fees-table tr:hover{background:rgba(0,255,65,.025)}
+.fees-table td{padding:clamp(14px,1.8vw,20px) 8px;vertical-align:middle}
+.fees-table .row-label{font-weight:600;color:var(--white)}
+.fees-table .row-sub{display:block;font-family:var(--mono);font-size:11px;color:var(--gray2);letter-spacing:.4px;margin-top:4px;font-weight:400}
+.fees-table .row-fee{font-family:var(--mono);font-size:13px;color:var(--gray)}
+.fees-table .row-total{font-family:var(--mono);font-weight:700;font-size:16px;text-align:right;color:var(--white);letter-spacing:-.02em}
+.fees-table .row-total.g{color:var(--green)}
+.fees-table tr.head td{
+  font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--gray2);
+  text-transform:uppercase;padding-bottom:10px;
+}
+.fees-note{
+  margin-top:clamp(20px,2.6vw,30px);
+  font-family:var(--mono);font-size:11px;color:var(--gray2);letter-spacing:.5px;
+  display:flex;align-items:center;gap:10px;
+}
+.fees-note::before{content:"↳";color:var(--green)}
+
+/* ============ FAQ ============ */
+.faq-list{max-width:860px;margin:0 auto;border-top:1px solid var(--rule)}
+.faq-item{border-bottom:1px solid var(--rule)}
+.faq-q{margin:0}
+.faq-q button{
+  display:flex;align-items:center;justify-content:space-between;gap:24px;
+  width:100%;padding:clamp(18px,2.2vw,26px) 0;
+  border:0;background:none;color:var(--white);text-align:left;cursor:pointer;
+  font-family:var(--mono);font-size:clamp(13px,1.3vw,15.5px);font-weight:400;
+  line-height:1.3;letter-spacing:-.02em;text-transform:uppercase;
+  transition:color .3s;
+}
+.faq-q button:hover{color:var(--green)}
+.faq-q button::after{
+  content:"";flex:0 0 auto;width:9px;height:9px;
+  border-right:1.6px solid var(--gray2);border-bottom:1.6px solid var(--gray2);
+  transform:rotate(45deg);transition:transform .36s var(--ease),border-color .3s;
+}
+.faq-item.is-open .faq-q button::after{transform:rotate(-135deg);border-color:var(--green)}
+.faq-a{display:grid;grid-template-rows:0fr;transition:grid-template-rows .44s var(--ease)}
+.faq-item.is-open .faq-a{grid-template-rows:1fr}
+.faq-a-inner{min-height:0;overflow:hidden;visibility:hidden;transition:visibility 0s linear .44s}
+.faq-item.is-open .faq-a-inner{visibility:visible;transition-delay:0s}
+.faq-a .answer{
+  max-width:64ch;margin:0;padding:0 0 clamp(20px,2.4vw,26px);
+  font-size:14.5px;line-height:1.65;color:var(--gray);
+  opacity:0;translate:0 -6px;
+  transition:opacity .36s ease 60ms,translate .44s var(--ease) 40ms;
+}
+.faq-item.is-open .answer{opacity:1;translate:none}
+
+/* ============ CTA BAND ============ */
+.cta-band{
+  max-width:1200px;margin:0 auto;
+  padding:clamp(50px,6.5vw,96px) clamp(22px,4vw,60px);
+  border-radius:calc(var(--radius) + 4px);
+  color:var(--white);
+  background:
+    radial-gradient(90% 130% at 100% 100%, rgba(0,255,65,.14) 0%, transparent 55%),
+    radial-gradient(70% 90% at 0% 0%, rgba(0,255,65,.05) 0%, transparent 45%),
+    linear-gradient(160deg,#0c120d 0%,#070907 60%,#050505 100%);
+  border:1px solid var(--rule-strong);
+  position:relative;overflow:hidden;
+  text-align:center;
+}
+.cta-band::before{
+  content:"";position:absolute;inset:-40%;
+  background:conic-gradient(from 90deg at 50% 50%, transparent 0deg, rgba(0,255,65,.04) 80deg, transparent 160deg);
+  animation:sky-rotate 26s linear infinite;
+  pointer-events:none;
+}
+.cta-band h2{
+  position:relative;
+  font-family:var(--sans);font-size:clamp(28px,4vw,50px);font-weight:700;
+  letter-spacing:-.03em;line-height:1.05;text-transform:uppercase;
+  margin-bottom:16px;
+}
+.cta-band h2 .serif{
+  font-family:var(--serif);font-style:italic;font-weight:400;text-transform:none;
+  background:linear-gradient(100deg,var(--green),#7dffa4);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;
+}
+.cta-band>p{
+  position:relative;color:var(--gray);max-width:52ch;margin:0 auto clamp(26px,3.4vw,38px);
+  font-size:clamp(14.5px,1.2vw,16.5px);line-height:1.65;
+}
+.cta-actions{
+  position:relative;display:flex;gap:14px;justify-content:center;flex-wrap:wrap;
+}
+.btn-primary{
+  display:inline-flex;align-items:center;gap:10px;
+  background:var(--green);color:#000;text-decoration:none;
+  font-family:var(--mono);font-size:12.5px;font-weight:700;letter-spacing:1.6px;
+  padding:15px 28px;border-radius:var(--radius);border:1px solid var(--green);
+  transition:all .3s var(--ease);
+}
+.btn-primary:hover{box-shadow:0 0 36px rgba(0,255,65,.4);transform:translateY(-2px)}
+.btn-ghost{
+  display:inline-flex;align-items:center;gap:10px;
+  background:transparent;color:var(--white);text-decoration:none;
+  font-family:var(--mono);font-size:12.5px;font-weight:400;letter-spacing:1.6px;
+  padding:15px 28px;border-radius:var(--radius);border:1px solid var(--rule-strong);
+  transition:all .3s var(--ease);
+}
+.btn-ghost:hover{border-color:var(--green);color:var(--green)}
+
+/* ============ FOOTER ============ */
+.site-footer{
+  padding:clamp(48px,6vw,80px) clamp(16px,3.4vw,44px) clamp(24px,3vw,40px);
+  border-top:1px solid var(--rule);
+  margin-top:clamp(30px,4vw,60px);
+}
+.footer-grid{
+  max-width:1200px;margin:0 auto;
+  display:grid;grid-template-columns:1.4fr 1fr 1fr;
+  gap:clamp(28px,4vw,60px);
+  padding-bottom:clamp(30px,4vw,50px);
+}
+.footer-brand img{height:24px;width:auto;margin-bottom:16px}
+.footer-brand p{color:var(--gray);font-size:14px;max-width:34ch;line-height:1.65}
+.footer-social{
+  display:inline-flex;align-items:center;gap:8px;margin-top:16px;
+  font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--gray);
+  text-decoration:none;border:1px solid var(--rule-strong);padding:8px 14px;border-radius:var(--radius);
+  transition:all .3s;
+}
+.footer-social:hover{border-color:var(--green);color:var(--green)}
+.footer-col h4{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:2.4px;color:var(--gray2);
+  text-transform:uppercase;margin-bottom:18px;
+}
+.footer-col a{
+  display:block;color:var(--gray);text-decoration:none;
+  font-size:14px;padding:5px 0;transition:color .25s;
+}
+.footer-col a:hover{color:var(--green)}
+.footer-legal{
+  max-width:1200px;margin:0 auto;
+  border-top:1px solid var(--rule);
+  padding-top:clamp(18px,2.4vw,26px);
+  font-family:var(--mono);font-size:10.5px;line-height:1.8;color:var(--gray2);letter-spacing:.3px;
+}
+
+/* ============ ENTRANCE ANIMATIONS ============ */
+.motion-ready .nav-left{animation:entrance-wipe-right .68s var(--ease) 40ms both}
+.motion-ready .nav-right{animation:entrance-wipe-right .76s var(--ease) .11s both}
+.motion-ready .hero-card{animation:card-float 7s var(--ease-soft) infinite,entrance-wipe-down .92s var(--ease-soft) .23s both}
+.motion-ready .hero-copy h1 span,.motion-ready .hero-copy h1 .accent{animation:entrance-type .78s var(--ease-soft) both}
+.motion-ready .hero-copy h1 span:nth-child(1){animation-delay:.5s}
+.motion-ready .hero-copy h1 .accent{animation-delay:.61s}
+.motion-ready .hero-copy h1 span:nth-child(3){animation-delay:.72s}
+.motion-ready .hero-copy>p{animation:entrance-support .62s var(--ease) .94s both}
+.motion-ready .trial-button{animation:entrance-action .6s var(--ease) 1.08s both}
+.motion-ready .hero-stats{animation:entrance-support .62s var(--ease) 1.18s both}
+.motion-ready .trusted-block{animation:entrance-support .7s var(--ease) 1.3s both}
+@keyframes entrance-wipe-right{from{opacity:0;translate:-22px 0}to{opacity:1;translate:0 0}}
+@keyframes entrance-wipe-down{from{opacity:0;translate:0 -26px}to{opacity:1;translate:0 0}}
+@keyframes entrance-type{from{opacity:0;translate:0 14px}to{opacity:1;translate:0 0}}
+@keyframes entrance-support{from{opacity:0;translate:0 10px}to{opacity:1;translate:0 0}}
+@keyframes entrance-action{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
+
+.reveal{opacity:0;translate:0 26px;transition:opacity .8s var(--ease-soft),translate .8s var(--ease-soft)}
+.reveal.in{opacity:1;translate:0 0}
+.reveal[data-delay="1"]{transition-delay:.08s}
+.reveal[data-delay="2"]{transition-delay:.16s}
+.reveal[data-delay="3"]{transition-delay:.24s}
+.reveal[data-delay="4"]{transition-delay:.32s}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:980px){
+  .hero-layout{grid-template-columns:1fr;gap:clamp(30px,5vw,48px)}
+  .hero-visual{min-height:clamp(300px,70vw,400px);order:-1}
+  .hero-copy{text-align:center}
+  .hero-copy>p{margin-left:auto;margin-right:auto}
+  .hero-stats{justify-content:center}
+  .insight-card{left:50%;transform:translateX(-50%)}
+  .steps-grid{grid-template-columns:repeat(2,1fr)}
+  .features-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:720px){
+  .nav-links{
+    display:none;position:fixed;top:57px;left:0;right:0;
+    background:rgba(5,5,5,.97);flex-direction:column;align-items:flex-start;
+    padding:24px clamp(16px,3.4vw,44px);gap:18px;
+    border-bottom:1px solid var(--rule-strong);
+    backdrop-filter:blur(20px);
+  }
+  .nav-links.open{display:flex}
+  .menu-btn{display:block}
+  .steps-grid{grid-template-columns:1fr}
+  .features-grid{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr;gap:32px}
+  .hero-dots{display:none}
+  .insight-card{width:min(230px,70%)}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .reveal{opacity:1;translate:0 0}
 }
 </style>
 </head>
 <body>
 
-<nav>
-  <a href="#top" class="nav-logo">
-    <img src="assets/logo.svg" alt="Hybrid Cash" height="30">
+<!-- ============ NAV ============ -->
+<nav id="topnav" aria-label="Primary navigation">
+  <a class="nav-logo nav-left" href="#home" aria-label="Hybrid Cash home">
+    <img src="assets/logo.svg" alt="Hybrid Cash">
   </a>
-  <button class="menu-btn" id="menuBtn" aria-label="Menu">≡</button>
-  <div class="nav-links" id="navLinks">
-    <a href="#how">HOW IT WORKS</a>
-    <a href="#features">FEATURES</a>
-    <a href="#fees">FEES</a>
+  <div class="nav-links nav-right" id="navLinks">
+    <a href="#how">How it works</a>
+    <a href="#features">Features</a>
+    <a href="#fees">Fees</a>
     <a href="#faq">FAQ</a>
-    <a href="https://x.com/hybridcash" target="_blank" rel="noopener" style="font-size:11px;letter-spacing:1px;color:var(--gray)">X</a>
-    <a class="nav-cta" href="#cta">GET A CARD</a>
+    <a href="#cta">Get a card</a>
+  </div>
+  <div class="nav-right" style="display:flex;align-items:center;gap:12px">
+    <a class="nav-cta" href="#cta">Get a card</a>
+    <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">☰</button>
   </div>
 </nav>
 
-<header class="hero" id="top">
-  <div class="hero-badge"><span class="dot"></span> POWERED BY ROBINHOOD CHAIN</div>
-  <h1>SPEND YOUR <span class="em">CRYPTO</span> ANYWHERE</h1>
-  <p class="sub">Pay with ETH, USDG or tokenized stocks on Robinhood Chain and get a prepaid card that works at the grocery store, online, and anywhere cards are accepted.</p>
-  <div class="hero-cta">
-    <a href="#cta" class="btn btn-primary">GET YOUR CARD</a>
-    <a href="#how" class="btn btn-ghost">HOW IT WORKS</a>
+<!-- ============ HERO ============ -->
+<header class="hero" id="home">
+  <div class="hero-sky" aria-hidden="true"></div>
+
+  <div class="hero-layout">
+    <div class="hero-copy">
+      <h1>
+        <span>Spend your</span>
+        <span class="accent">crypto</span>
+        <span>anywhere</span>
+      </h1>
+      <p>Pay with ETH, USDG or tokenized stocks on Robinhood Chain and get a prepaid card that works at the grocery store, online, and anywhere cards are accepted.</p>
+      <a class="trial-button" href="#cta">GET YOUR CARD <span class="arr">→</span></a>
+      <div class="hero-stats">
+        <div class="stat"><div class="num">$0</div><div class="lbl">Monthly fee</div></div>
+        <div class="stat"><div class="num">~2s</div><div class="lbl">To spendable</div></div>
+        <div class="stat"><div class="num">100M+</div><div class="lbl">Merchants</div></div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="hero-card" role="img" aria-label="Hybrid Cash prepaid card mockup">
+        <div class="card-brand">
+          <div class="word">HYBRID<em>CASH</em></div>
+          <div class="ticker">$HCASH</div>
+        </div>
+        <div class="chip" aria-hidden="true"></div>
+        <div class="card-num">•••• &nbsp;•••• &nbsp;•••• &nbsp;4021</div>
+        <div class="card-foot">
+          <div>
+            <div class="lbl">Card holder</div>
+            <div class="val">YOUR NAME</div>
+          </div>
+          <div>
+            <div class="lbl">Balance</div>
+            <div class="val" style="color:var(--green)">$1,240.00</div>
+          </div>
+          <div class="contact">hybrid cash</div>
+        </div>
+      </div>
+      <div class="insight-card">
+        <div class="ic-top">Fund in seconds <span class="dot"></span></div>
+        <div class="insight-row"><span class="k">ETH</span><span class="v">0.42</span></div>
+        <div class="insight-row"><span class="k">USDG</span><span class="v">250.00</span></div>
+        <div class="insight-row"><span class="k">CARD BALANCE</span><span class="v green">$1,240.00</span></div>
+      </div>
+    </div>
   </div>
+
+  <div class="trusted-block">
+    <div class="tb-label">Accepted at 100M+ merchants worldwide</div>
+    <div class="trusted-marquee">
+      <div class="trusted-track" id="trustedTrack">
+        <span>Groceries</span><span>Online shopping</span><span>Dining</span><span>Fuel</span><span>Travel</span><span>Subscriptions</span><span>Pharmacies</span><span>Transit</span>
+      </div>
+    </div>
+  </div>
+  <div class="hero-dots" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
 </header>
 
+<!-- ============ HOW IT WORKS ============ -->
 <section id="how">
-  <div class="section-label">HOW IT WORKS</div>
-  <h2>GETTING A CARD TAKES <span class="em">MINUTES</span>, NOT PAPERWORK</h2>
-  <p class="section-sub">No KYC. No credit check. No bank account. Just your wallet and a prepaid card that works everywhere.</p>
-  <div class="steps">
-    <div class="step">
-      <div class="num">01</div>
-      <div class="step-label">CONNECT & DEPOSIT</div>
-      <h3>Fund your wallet</h3>
-      <p>Connect your wallet on Robinhood Chain. Deposit ETH, USDG, or any supported token. Your balance is spendable in seconds.</p>
-    </div>
-    <div class="step">
-      <div class="num">02</div>
-      <div class="step-label">GET YOUR CARD</div>
-      <h3>Virtual card, instantly</h3>
-      <p>Get a virtual prepaid card the moment you deposit. Use it online immediately. Physical card coming soon.</p>
-    </div>
-    <div class="step">
-      <div class="num">03</div>
-      <div class="step-label">SPEND ANYWHERE</div>
-      <h3>100M+ merchants</h3>
-      <p>Groceries, online checkout, subscriptions, bills — the card works wherever Visa/Mastercard are accepted worldwide.</p>
-    </div>
-    <div class="step">
-      <div class="num">04</div>
-      <div class="step-label">TRACK & TOP UP</div>
+  <div class="section-head reveal">
+    <div class="section-kicker">How it works</div>
+    <h2>Getting a card takes <span class="serif">minutes,</span> not paperwork</h2>
+  </div>
+  <div class="steps-grid">
+    <article class="step-card reveal" data-delay="0">
+      <div class="step-no">Step 01</div>
+      <h3>Connect &amp; deposit</h3>
+      <p>Connect your wallet on Robinhood Chain and deposit ETH, USDG or tokenized stocks. No bank account, no paperwork.</p>
+      <div class="step-visual">
+        <div class="mock">
+          <div class="m-row"><span class="k">ETH</span><span class="v">0.42</span></div>
+          <div class="m-row"><span class="k">USDG</span><span class="v">250.00</span></div>
+          <div class="m-row"><span class="k">Chain</span><span class="v g">ROBINHOOD ✓</span></div>
+          <div class="confirm">Deposit confirmed</div>
+        </div>
+      </div>
+    </article>
+    <article class="step-card reveal" data-delay="1">
+      <div class="step-no">Step 02</div>
+      <h3>Get your card</h3>
+      <p>A virtual card is issued instantly. Order the physical card and it ships to your door.</p>
+      <div class="step-visual">
+        <div class="card-mini">
+          <span class="c-word">HYBRID<em>CASH</em></span>
+          <span class="c-num">•••• 4021</span>
+        </div>
+        <div style="font-size:10px;margin-top:8px;color:var(--green)">✓ Virtual card issued</div>
+      </div>
+    </article>
+    <article class="step-card reveal" data-delay="2">
+      <div class="step-no">Step 03</div>
+      <h3>Spend anywhere</h3>
+      <p>Groceries, online checkout, subscriptions: the card works wherever cards are accepted.</p>
+      <div class="step-visual">
+        <div class="mock">
+          <div class="m-row"><span class="k">Txn</span><span class="v">- $48.20</span></div>
+          <div class="m-row"><span class="k">Status</span><span class="v g">APPROVED</span></div>
+          <div class="m-row"><span class="k">Where</span><span class="v">WHOLE FOODS</span></div>
+        </div>
+      </div>
+    </article>
+    <article class="step-card reveal" data-delay="3">
+      <div class="step-no">Step 04</div>
+      <h3>Track &amp; top up</h3>
+      <p>Every purchase shows up in real time. Running low? Top up from your wallet in seconds.</p>
+      <div class="step-visual">
+        <div class="mock">
+          <div class="m-row"><span class="k">Balance</span><span class="v g">$1,240.00</span></div>
+          <div class="m-row"><span class="k">Top up</span><span class="v">+ $250</span></div>
+          <div class="m-row"><span class="k">Time</span><span class="v">1.8s</span></div>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ============ FEATURES ============ -->
+<section id="features" style="padding-top:0">
+  <div class="section-head reveal">
+    <div class="section-kicker">Why Hybrid Cash</div>
+    <h2>Everyday money, settled <span class="serif">onchain</span></h2>
+    <p>Hybrid Cash turns the crypto you already hold into a card you can use at the till. No off-ramp, no bank transfer, no waiting.</p>
+  </div>
+  <div class="features-grid">
+    <article class="feature-card reveal" data-delay="0">
+      <span class="f-no">01</span>
+      <h3>Pay with what you hold</h3>
+      <p>ETH, USDG, or Robinhood stock and ETF tokens on Robinhood Chain. Anything you hold becomes spendable card balance. No off-ramp, no bank transfer.</p>
+    </article>
+    <article class="feature-card reveal" data-delay="1">
+      <span class="f-no">02</span>
+      <h3>Settled on Robinhood Chain</h3>
+      <p>Deposits and top-ups are onchain transactions you can verify. Low fees, fast finality.</p>
+    </article>
+    <article class="feature-card reveal" data-delay="2">
+      <span class="f-no">03</span>
+      <h3>Virtual today, physical tomorrow</h3>
+      <p>Add the virtual card to your phone wallet the moment it's issued. The physical card follows in the mail.</p>
+    </article>
+    <article class="feature-card reveal" data-delay="3">
+      <span class="f-no">04</span>
       <h3>Real-time control</h3>
-      <p>Monitor your balance, freeze the card from your wallet, and top up anytime. No monthly fees, no hidden charges.</p>
+      <p>Freeze and unfreeze instantly, set per-transaction and monthly limits, and get a notification for every purchase.</p>
+    </article>
+    <article class="feature-card reveal" data-delay="4">
+      <span class="f-no">05</span>
+      <h3>Prepaid by design</h3>
+      <p>You can only spend what you've loaded. No overdrafts, no credit checks, no surprises.</p>
+    </article>
+    <article class="feature-card reveal" data-delay="5">
+      <span class="f-no">06</span>
+      <h3>Built for everyday</h3>
+      <p>Contactless in-store, one-tap online, and works with Apple Pay and Google Pay.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============ FEES ============ -->
+<section id="fees" style="padding-top:0">
+  <div class="section-head reveal">
+    <div class="section-kicker">Fees</div>
+    <h2>Simple, published <span class="serif">pricing</span></h2>
+    <p>One flat fee plus the balance you choose. Every new card starts with $10 on it; the rest is loaded straight after.</p>
+  </div>
+  <div class="fees-wrap reveal">
+    <table class="fees-table">
+      <tr class="head"><td>Card</td><td>Fee</td><td style="text-align:right">Total</td></tr>
+      <tr><td class="row-label">New card with $10 on it<span class="row-sub">$15.00 fee + $10 balance</span></td><td class="row-fee">$15.00</td><td class="row-total">$25.00</td></tr>
+      <tr><td class="row-label">New card with $20 on it<span class="row-sub">$15.00 fee + $20 balance</span></td><td class="row-fee">$15.00</td><td class="row-total">$35.00</td></tr>
+      <tr><td class="row-label">New card with $50 on it<span class="row-sub">$15.00 fee + $50 balance</span></td><td class="row-fee">$15.00</td><td class="row-total">$65.00</td></tr>
+      <tr><td class="row-label">New card with $100 on it<span class="row-sub">$15.00 fee + $100 balance</span></td><td class="row-fee">$15.00</td><td class="row-total">$115.00</td></tr>
+      <tr><td class="row-label">New card with $250 on it<span class="row-sub">$15.00 fee + $250 balance</span></td><td class="row-fee">$15.00</td><td class="row-total">$265.00</td></tr>
+      <tr><td class="row-label">Top-up<span class="row-sub">minimum $10.00, up to $1,000.00 per top-up</span></td><td class="row-fee">$15.00 + amount</td><td class="row-total">—</td></tr>
+      <tr><td class="row-label">Monthly fee<span class="row-sub">no hidden recurring costs</span></td><td class="row-fee">$0</td><td class="row-total g">FREE</td></tr>
+      <tr><td class="row-label">Network gas<span class="row-sub">paid to Robinhood Chain, shown by your wallet</span></td><td class="row-fee">at cost</td><td class="row-total">—</td></tr>
+    </table>
+    <div class="fees-note">Pricing placeholder — final fee structure published at launch.</div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section id="faq" style="padding-top:0">
+  <div class="section-head reveal">
+    <div class="section-kicker">FAQ</div>
+    <h2>Questions, <span class="serif">answered</span></h2>
+  </div>
+  <div class="faq-list reveal">
+    <div class="faq-item">
+      <h3 class="faq-q"><button type="button" aria-expanded="false">What is Hybrid Cash?</button></h3>
+      <div class="faq-a"><div class="faq-a-inner"><p class="answer">Hybrid Cash is a prepaid card funded with crypto — ETH, USDG or tokenized stocks — on Robinhood Chain. You load it, then spend it anywhere cards are accepted. No bank account required.</p></div></div>
+    </div>
+    <div class="faq-item">
+      <h3 class="faq-q"><button type="button" aria-expanded="false">What is USDG?</button></h3>
+      <div class="faq-a"><div class="faq-a-inner"><p class="answer">USDG is a stablecoin on Robinhood Chain that stays pegged to the US dollar. It is the default settlement currency for Hybrid Cash deposits and card balances.</p></div></div>
+    </div>
+    <div class="faq-item">
+      <h3 class="faq-q"><button type="button" aria-expanded="false">Do I have to convert my ETH first?</button></h3>
+      <div class="faq-a"><div class="faq-a-inner"><p class="answer">No. Deposit ETH, USDG or tokenized stocks directly. Hybrid Cash converts what you hold into spendable balance automatically, so you never have to touch an exchange.</p></div></div>
+    </div>
+    <div class="faq-item">
+      <h3 class="faq-q"><button type="button" aria-expanded="false">Why Robinhood Chain?</button></h3>
+      <div class="faq-a"><div class="faq-a-inner"><p class="answer">Robinhood Chain gives you low fees, fast finality, and native access to tokenized stocks and ETFs. Everything settles onchain, verifiable by anyone.</p></div></div>
+    </div>
+    <div class="faq-item">
+      <h3 class="faq-q"><button type="button" aria-expanded="false">Can I pay with tokenized stocks?</button></h3>
+      <div class="faq-a"><div class="faq-a-inner"><p class="answer">Yes. Hold tokenized stocks or ETFs on Robinhood Chain and they can back your card balance. That's the "hybrid" — your whole portfolio becomes spendable.</p></div></div>
+    </div>
+    <div class="faq-item">
+      <h3 class="faq-q"><button type="button" aria-expanded="false">Where can I use the card?</button></h3>
+      <div class="faq-a"><div class="faq-a-inner"><p class="answer">Groceries, online checkout, dining, fuel, travel, subscriptions, pharmacies, transit — anywhere cards are accepted, including Apple Pay and Google Pay.</p></div></div>
+    </div>
+    <div class="faq-item">
+      <h3 class="faq-q"><button type="button" aria-expanded="false">How quickly can I spend after depositing?</button></h3>
+      <div class="faq-a"><div class="faq-a-inner"><p class="answer">In seconds. Deposit and your balance is spendable immediately — no waiting period, no approval queue.</p></div></div>
+    </div>
+    <div class="faq-item">
+      <h3 class="faq-q"><button type="button" aria-expanded="false">Is Hybrid Cash a bank?</button></h3>
+      <div class="faq-a"><div class="faq-a-inner"><p class="answer">No. Hybrid Cash is a financial technology product. Card balances are not bank deposits and are not insured. Cards are issued by our issuing partner.</p></div></div>
+    </div>
+    <div class="faq-item">
+      <h3 class="faq-q"><button type="button" aria-expanded="false">Can I get a physical card?</button></h3>
+      <div class="faq-a"><div class="faq-a-inner"><p class="answer">Yes. A virtual card is issued instantly; the physical card is shipped to you and works exactly the same, with contactless support.</p></div></div>
     </div>
   </div>
 </section>
 
-<section id="features">
-  <div class="section-label">WHY <span class="em">HYBRID CASH</span></div>
-  <h2>EVERYDAY MONEY, <span class="em">SETTLED ONCHAIN</span></h2>
-  <p class="section-sub">Your crypto portfolio isn't just for holding. It's for spending. Hybrid Cash bridges the gap between your wallet and the real world.</p>
-  <div class="features">
-    <div class="feature">
-      <div class="icon">⟐ PAY WITH WHAT YOU HOLD</div>
-      <h3>ETH, USDG, stocks</h3>
-      <p>Spend ETH, USDG, or tokenized stocks like NVDA directly. No need to sell first — the card handles the conversion.</p>
-    </div>
-    <div class="feature">
-      <div class="icon">⟐ SETTLED ON HOOD CHAIN</div>
-      <h3>Fast & cheap</h3>
-      <p>Every transaction settles on Robinhood Chain (4663). Sub-second finality, pennies in gas, full transparency.</p>
-    </div>
-    <div class="feature">
-      <div class="icon">⟐ VIRTUAL TODAY, PHYSICAL TOMORROW</div>
-      <h3>Start online, go anywhere</h3>
-      <p>Get a virtual card instantly. Use it online. A physical card for ATMs and in-store tap is coming soon.</p>
-    </div>
-    <div class="feature">
-      <div class="icon">⟐ REAL-TIME CONTROL</div>
-      <h3>From your wallet</h3>
-      <p>Freeze, unfreeze, top up, and check your balance directly from your wallet. No app required, no login needed.</p>
-    </div>
-    <div class="feature">
-      <div class="icon">⟐ PREPAID BY DESIGN</div>
-      <h3>No debt, no risk</h3>
-      <p>You can only spend what you've deposited. No overdraft, no interest, no credit check. Prepaid = safe by default.</p>
-    </div>
-    <div class="feature">
-      <div class="icon">⟐ BUILT FOR EVERYDAY</div>
-      <h3>Groceries to subscriptions</h3>
-      <p>Use it at the grocery store, for your Netflix subscription, on Amazon, or anywhere online. Real spending, real crypto.</p>
-    </div>
-  </div>
-</section>
-
-<section id="fees">
-  <div class="section-label">FEES</div>
-  <h2>SIMPLE, <span class="em">PUBLISHED</span> PRICING</h2>
-  <p class="section-sub">No surprises. No hidden fees. What you see is what you pay.</p>
-  <div class="pricing-grid">
-    <div class="pricing-card">
-      <div class="p-label">NEW CARD</div>
-      <div class="p-value">$15</div>
-      <div class="p-desc">One-time card issuance fee. Includes $10 pre-loaded balance. You get a card + spending power.</div>
-    </div>
-    <div class="pricing-card">
-      <div class="p-label">TOP-UP</div>
-      <div class="p-value">$15 + AMOUNT</div>
-      <div class="p-desc">Minimum $10, up to $1,000 per top-up. The $15 fee applies each top-up, plus the amount you add.</div>
-    </div>
-    <div class="pricing-card">
-      <div class="p-label">MONTHLY FEE</div>
-      <div class="p-value gray">$0</div>
-      <div class="p-desc">No monthly maintenance fee. No inactivity fee. Pay once for the card, then only when you top up.</div>
-    </div>
-    <div class="pricing-card">
-      <div class="p-label">NETWORK GAS</div>
-      <div class="p-value gray">AT COST</div>
-      <div class="p-desc">Paid to Robinhood Chain, shown by your wallet. Typically pennies per transaction.</div>
-    </div>
-  </div>
-</section>
-
-<section id="faq">
-  <div class="section-label">FAQ</div>
-  <h2>QUESTIONS, <span class="em">answered</span></h2>
-  <div class="faq-list">
-    <div class="faq-item">
-      <button class="faq-q">WHAT IS HYBRID CASH? <span class="arrow">▼</span></button>
-      <div class="faq-a">Hybrid Cash is a prepaid card service on Robinhood Chain. You deposit ETH, USDG, or tokenized stocks, and get a prepaid card that works anywhere cards are accepted. No bank account, no credit check, no KYC.</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-q">WHAT IS USDG? <span class="arrow">▼</span></button>
-      <div class="faq-a">USDG is a stablecoin on Robinhood Chain pegged 1:1 to the US Dollar. It's the default quote asset for the chain and the most stable way to fund your card. USDC and USDT are also supported.</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-q">DO I HAVE TO CONVERT MY ETH FIRST? <span class="arrow">▼</span></button>
-      <div class="faq-a">No. You can deposit ETH directly and the card will handle the conversion at the point of spending. You can also deposit USDG or tokenized stocks like NVDA — no conversion required until you swipe.</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-q">WHY ROBINHOOD CHAIN? <span class="arrow">▼</span></button>
-      <div class="faq-a">Robinhood Chain (4663) is fast, cheap, and built for retail. It's the only chain where you can hold tokenized stocks (NVDA, SPY, AAPL) alongside your crypto and spend them directly. Sub-second blocks, pennies in gas.</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-q">CAN I PAY WITH TOKENIZED STOCKS? <span class="arrow">▼</span></button>
-      <div class="faq-a">Yes. The card accepts tokenized stocks like NVDA, SPY, AAPL, and more. When you swipe, the card converts your stock tokens to spendable cash at the current market rate via live Chainlink price feeds.</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-q">WHERE CAN I USE THE CARD? <span class="arrow">▼</span></button>
-      <div class="faq-a">Anywhere Visa/Mastercard is accepted — online and in-store at 100M+ merchants worldwide. Groceries, subscriptions, bills, shopping, travel. If they take cards, they take Hybrid Cash.</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-q">IS HYBRID CASH A BANK? <span class="arrow">▼</span></button>
-      <div class="faq-a">No. Hybrid Cash is a non-custodial prepaid card service. We never hold your funds — your wallet does. The card is a spending gateway from your wallet to the real world. We are not a bank, and we don't lend or borrow.</div>
-    </div>
-  </div>
-</section>
-
-<section class="cta-section" id="cta">
-  <div class="cta-box">
-    <h2>READY TO <span class="em">SPEND YOUR CRYPTO</span>?</h2>
-    <p>Hybrid Cash is live on Robinhood Chain. Get a card in minutes, not days. Spend anywhere, anytime.</p>
+<!-- ============ CTA ============ -->
+<section id="cta" style="padding-top:0">
+  <div class="cta-band reveal">
+    <h2>Ready to spend your <span class="serif">crypto?</span></h2>
+    <p>Connect a wallet on Robinhood Chain, deposit ETH, USDG or tokenized stocks, and your card is ready before you finish your coffee.</p>
     <div class="cta-actions">
-      <a href="#fees" class="btn btn-primary">GET A CARD</a>
-      <a href="https://x.com/hybridcash" target="_blank" rel="noopener" class="btn btn-ghost">FOLLOW ON X</a>
+      <a class="btn-primary" href="#home">GET YOUR CARD →</a>
+      <a class="btn-ghost" href="#how">SEE HOW IT WORKS</a>
     </div>
   </div>
 </section>
 
-<footer>
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer" id="contact">
   <div class="footer-grid">
     <div class="footer-brand">
-      <div class="logo">HYBRID CASH</div>
-      <p>Prepaid cards funded with crypto & tokenized stocks on Robinhood Chain. Spend your portfolio anywhere.</p>
+      <img src="assets/logo.svg" alt="Hybrid Cash">
+      <p>A prepaid card funded with ETH, USDG or tokenized stocks on Robinhood Chain. Spend anywhere cards are accepted.</p>
+      <a class="footer-social" href="https://x.com/" target="_blank" rel="noopener">✕ &nbsp;@HybridCash</a>
     </div>
     <div class="footer-col">
-      <h4>PRODUCT</h4>
+      <h4>Product</h4>
       <a href="#how">How it works</a>
       <a href="#features">Features</a>
       <a href="#fees">Fees</a>
       <a href="#faq">FAQ</a>
     </div>
     <div class="footer-col">
-      <h4>LEGAL</h4>
-      <a href="https://x.com/hybridcash" target="_blank" rel="noopener">Terms of Service</a>
-      <a href="https://docs.robinhood.com/chain/stock-tokens" target="_blank" rel="noopener">Docs</a>
-      <a href="https://x.com/hybridcash" target="_blank" rel="noopener">X / Twitter</a>
+      <h4>Legal</h4>
+      <a href="#contact">Terms of Service</a>
+      <a href="#contact">Docs</a>
     </div>
   </div>
-  <div class="footer-bar">
-    <div>HYBRID CASH · $HCASH · ROBINHOOD CHAIN 4663</div>
-    <div class="warn">NOT A BANK. NOT FDIC INSURED. CRYPTO AND TOKENIZED STOCKS CARRY RISK. NOT FINANCIAL ADVICE.</div>
+  <div class="footer-legal">
+    © 2026 Hybrid Cash. All rights reserved. Hybrid Cash is a financial technology company, not a bank. Card balances are not bank deposits and are not insured. Cards are issued by our issuing partner pursuant to applicable licenses. $HCASH token ticker subject to change.
   </div>
 </footer>
 
 <script>
-// FAQ accordion
-document.querySelectorAll('.faq-q').forEach(q => {
-  q.addEventListener('click', () => {
-    const item = q.closest('.faq-item');
-    const isOpen = item.classList.contains('open');
-    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
-    if (!isOpen) item.classList.add('open');
+(function(){
+  // ===== Mobile menu =====
+  var menuBtn = document.getElementById('menuBtn');
+  var navLinks = document.getElementById('navLinks');
+  if (menuBtn && navLinks) {
+    menuBtn.addEventListener('click', function(){
+      navLinks.classList.toggle('open');
+    });
+    navLinks.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){ navLinks.classList.remove('open'); });
+    });
+  }
+
+  // ===== Nav scroll state =====
+  var topnav = document.getElementById('topnav');
+  function onScroll(){
+    topnav.classList.toggle('scrolled', window.scrollY > 24);
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  // ===== FAQ accordion =====
+  document.querySelectorAll('.faq-item').forEach(function(item){
+    var btn = item.querySelector('.faq-q button');
+    btn.addEventListener('click', function(){
+      var isOpen = item.classList.contains('is-open');
+      // auto-close others
+      document.querySelectorAll('.faq-item.is-open').forEach(function(other){
+        if (other !== item) {
+          other.classList.remove('is-open');
+          other.querySelector('.faq-q button').setAttribute('aria-expanded','false');
+        }
+      });
+      item.classList.toggle('is-open', !isOpen);
+      btn.setAttribute('aria-expanded', String(!isOpen));
+    });
   });
-});
-// mobile menu
-const menuBtn = document.getElementById('menuBtn');
-const navLinks = document.getElementById('navLinks');
-menuBtn.addEventListener('click', () => navLinks.classList.toggle('open'));
-document.querySelectorAll('#navLinks a').forEach(a => a.addEventListener('click', () => navLinks.classList.remove('open')));
+
+  // ===== Entrance motion (IntersectionObserver) =====
+  document.documentElement.classList.add('motion-ready');
+  var revealEls = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          io.unobserve(entry.target);
+        }
+      });
+    }, {threshold: 0.12, rootMargin: '0px 0px -6% 0px'});
+    revealEls.forEach(function(el){ io.observe(el); });
+  } else {
+    revealEls.forEach(function(el){ el.classList.add('in'); });
+  }
+
+  // ===== Marquee duplicate for seamless loop =====
+  var track = document.getElementById('trustedTrack');
+  if (track) {
+    track.innerHTML += track.innerHTML;
+  }
+})();
 </script>
 </body>
 </html>
