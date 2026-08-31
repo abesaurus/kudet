@@ -1,0 +1,14 @@
+{
+  "name": "hybrid-cash-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Hybrid Cash backend - crypto checkout for prepaid card",
+  "scripts": {
+    "start": "node --env-file=.env server.mjs"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "viem": "^2.21.0"
+  }
+}

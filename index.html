@@ -642,8 +642,51 @@ section:nth-child(even){background:var(--bg2)}
   border-radius:8px;padding:10px;display:inline-block;margin-bottom:8px;
 }
 .modal-success .waitlist-count{font-family:var(--mono);font-size:10px;color:var(--gray2)}
-.modal-back{background:none;border:0;color:var(--gray);cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:1px;margin-top:12px}
+.modal-back{background:none;border:0;color:var(--gray);cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:1px;margin-top:12px;display:block;width:100%}
 .modal-back:hover{color:var(--green)}
+
+/* asset + amount pickers (real checkout) */
+.asset-options{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.asset-opt{
+  position:relative;border:1.5px solid var(--rule-strong);border-radius:10px;background:var(--panel2);
+  padding:14px 10px;text-align:center;cursor:pointer;transition:all .25s var(--ease);
+  display:flex;flex-direction:column;gap:3px;align-items:center;
+}
+.asset-opt:hover{border-color:var(--green)}
+.asset-opt.sel{border-color:var(--green);background:var(--green-light);box-shadow:0 0 0 1px var(--green)}
+.asset-opt input{position:absolute;opacity:0;pointer-events:none}
+.asset-sym{font-family:var(--mono);font-weight:700;font-size:16px;letter-spacing:.5px}
+.asset-name{font-size:11px;color:var(--gray)}
+.asset-badge{
+  font-family:var(--mono);font-size:8.5px;letter-spacing:.8px;color:var(--green);
+  background:rgba(0,200,5,.1);border:1px solid rgba(0,200,5,.25);
+  padding:2px 7px;border-radius:100px;text-transform:uppercase;
+}
+.amount-options{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}
+.amount-options .load-opt{padding:12px 6px;border:1.5px solid var(--rule-strong);border-radius:10px;background:var(--panel2);text-align:center;cursor:pointer;transition:all .25s var(--ease)}
+.amount-options .load-opt:hover{border-color:var(--green)}
+.amount-options .load-opt.sel{border-color:var(--green);background:var(--green-light);box-shadow:0 0 0 1px var(--green)}
+.amount-options .load-opt .am{font-family:var(--mono);font-weight:700;font-size:14px}
+.amount-options .load-opt .ap{font-family:var(--mono);font-size:8px;color:var(--gray2);margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
+
+/* payment summary */
+.pay-summary{
+  background:var(--panel2);border:1px solid var(--rule);border-radius:10px;
+  padding:14px 16px;margin-bottom:18px;
+}
+.pay-row{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--rule)}
+.pay-row:last-child{border-bottom:none}
+.pay-row .k{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--gray2);text-transform:uppercase}
+.pay-row .v{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ink)}
+.pay-row .v.mono{font-size:11px;font-weight:400;color:var(--green)}
+
+/* spinner */
+.spinner{
+  width:44px;height:44px;border-radius:50%;
+  border:3px solid var(--green-light);border-top-color:var(--green);
+  margin:0 auto 18px;animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 /* ============ RESPONSIVE ============ */
 @media (max-width:980px){
@@ -962,7 +1005,7 @@ section:nth-child(even){background:var(--bg2)}
   </div>
 </footer>
 
-<!-- ============ GET CARD MODAL ============ -->
+<!-- ============ GET CARD MODAL (REAL CHECKOUT) ============ -->
 <div class="modal-overlay" id="cardModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
   <div class="modal">
     <div class="modal-head">
@@ -970,22 +1013,53 @@ section:nth-child(even){background:var(--bg2)}
       <button class="modal-close" id="modalClose" aria-label="Close">✕</button>
     </div>
     <div class="modal-body" id="modalBody">
-      <!-- step 1: load amount -->
-      <div class="modal-step" data-step="1">Step 1 / 2</div>
-      <div class="modal-title">How much do you want to load?</div>
-      <div class="modal-sub">Pick an initial load. Your whole balance starts earning APY the moment it's deposited.</div>
-      <div class="load-options" id="loadOptions">
-        <div class="load-opt" data-amt="10"><div class="am">$10</div><div class="ap">+ $15 fee</div></div>
-        <div class="load-opt" data-amt="20"><div class="am">$20</div><div class="ap">+ $15 fee</div></div>
-        <div class="load-opt" data-amt="50"><div class="am">$50</div><div class="ap">+ $15 fee</div></div>
-        <div class="load-opt" data-amt="100"><div class="am">$100</div><div class="ap">+ $15 fee</div></div>
-        <div class="load-opt" data-amt="250"><div class="am">$250</div><div class="ap">+ $15 fee</div></div>
+      <!-- step 1: asset + amount -->
+      <div class="modal-step" data-step="1">Step 1 / 3</div>
+      <div class="modal-title">Deposit crypto to fund your card</div>
+      <div class="modal-sub">Pick what you want to deposit. The card balance is funded the moment the transaction confirms onchain — no bank, no paperwork.</div>
+
+      <div class="asset-options" id="assetOptions">
+        <label class="asset-opt">
+          <input type="radio" name="asset" value="USDG" checked>
+          <span class="asset-sym">USDG</span>
+          <span class="asset-name">Global Dollar</span>
+          <span class="asset-badge">1:1</span>
+        </label>
+        <label class="asset-opt">
+          <input type="radio" name="asset" value="ETH">
+          <span class="asset-sym">ETH</span>
+          <span class="asset-name">Ether</span>
+          <span class="asset-badge">live</span>
+        </label>
+        <label class="asset-opt">
+          <input type="radio" name="asset" value="WETH">
+          <span class="asset-sym">WETH</span>
+          <span class="asset-name">Wrapped Ether</span>
+          <span class="asset-badge">live</span>
+        </label>
       </div>
+
+      <div class="amount-options" id="amountOptions">
+        <div class="load-opt" data-amt="10"><div class="am">$10</div><div class="ap">min load</div></div>
+        <div class="load-opt" data-amt="20"><div class="am">$20</div><div class="ap"></div></div>
+        <div class="load-opt" data-amt="50"><div class="am">$50</div><div class="ap"></div></div>
+        <div class="load-opt" data-amt="100"><div class="am">$100</div><div class="ap"></div></div>
+        <div class="load-opt" data-amt="250"><div class="am">$250</div><div class="ap"></div></div>
+      </div>
+
       <button class="modal-cta" id="modalNext" disabled>CONTINUE →</button>
-      <div class="modal-note">Virtual card issued instantly. $15.00 one-time card fee.</div>
+      <div class="modal-note">Deposit goes to the Hybrid Cash treasury. Card balance is issued after onchain confirmation.</div>
     </div>
   </div>
 </div>
+
+<script type="importmap">
+{
+  "imports": {
+    "viem": "https://esm.sh/viem@2"
+  }
+}
+</script>
 
 <script>
 (function(){
@@ -1048,13 +1122,14 @@ section:nth-child(even){background:var(--bg2)}
     track.innerHTML += track.innerHTML;
   }
 
-  // ===== Get Card Modal =====
+  // ===== Get Card Modal (REAL CHECKOUT) =====
   var modal = document.getElementById('cardModal');
   var modalBody = document.getElementById('modalBody');
   var modalClose = document.getElementById('modalClose');
-  var modalNext = document.getElementById('modalNext');
-  var loadOpts = document.querySelectorAll('.load-opt');
+  var API = window.HC_API_BASE || 'http://localhost:4190';
+  var selectedAsset = 'USDG';
   var selectedAmt = null;
+  var quoteData = null;
 
   // Open modal from any .js-get-card click
   document.querySelectorAll('.js-get-card').forEach(function(btn){
@@ -1081,94 +1156,259 @@ section:nth-child(even){background:var(--bg2)}
     document.body.style.overflow = '';
     resetModal();
   }
+
   function resetModal(){
+    selectedAsset = 'USDG';
     selectedAmt = null;
-    modalNext.disabled = true;
-    loadOpts.forEach(function(o){ o.classList.remove('sel'); });
-    modalBody.innerHTML =
-      '<div class="modal-step" data-step="1">Step 1 / 2</div>' +
-      '<div class="modal-title">How much do you want to load?</div>' +
-      '<div class="modal-sub">Pick an initial load. Your whole balance starts earning APY the moment it\'s deposited.</div>' +
-      '<div class="load-options" id="loadOptions">' +
-        '<div class="load-opt" data-amt="10"><div class="am">$10</div><div class="ap">+ $15 fee</div></div>' +
-        '<div class="load-opt" data-amt="20"><div class="am">$20</div><div class="ap">+ $15 fee</div></div>' +
-        '<div class="load-opt" data-amt="50"><div class="am">$50</div><div class="ap">+ $15 fee</div></div>' +
-        '<div class="load-opt" data-amt="100"><div class="am">$100</div><div class="ap">+ $15 fee</div></div>' +
-        '<div class="load-opt" data-amt="250"><div class="am">$250</div><div class="ap">+ $15 fee</div></div>' +
-      '</div>' +
-      '<button class="modal-cta" id="modalNext" disabled>CONTINUE →</button>' +
-      '<div class="modal-note">Virtual card issued instantly. $15.00 one-time card fee.</div>';
-    // rebind
-    rebindModal();
+    quoteData = null;
+    renderStep1();
+    rebindStep1();
   }
 
-  function rebindModal(){
-    loadOpts = document.querySelectorAll('.load-opt');
-    loadOpts.forEach(function(o){
+  function renderStep1(){
+    modalBody.innerHTML =
+      '<div class="modal-step" data-step="1">Step 1 / 3</div>' +
+      '<div class="modal-title">Deposit crypto to fund your card</div>' +
+      '<div class="modal-sub">Pick what you want to deposit. The card balance is funded the moment the transaction confirms onchain.</div>' +
+      '<div class="asset-options" id="assetOptions">' +
+        '<label class="asset-opt' + (selectedAsset==='USDG'?' sel':'') + '"><input type="radio" name="asset" value="USDG"' + (selectedAsset==='USDG'?' checked':'') + '><span class="asset-sym">USDG</span><span class="asset-name">Global Dollar</span><span class="asset-badge">1:1</span></label>' +
+        '<label class="asset-opt' + (selectedAsset==='ETH'?' sel':'') + '"><input type="radio" name="asset" value="ETH"' + (selectedAsset==='ETH'?' checked':'') + '><span class="asset-sym">ETH</span><span class="asset-name">Ether</span><span class="asset-badge">live</span></label>' +
+        '<label class="asset-opt' + (selectedAsset==='WETH'?' sel':'') + '"><input type="radio" name="asset" value="WETH"' + (selectedAsset==='WETH'?' checked':'') + '><span class="asset-sym">WETH</span><span class="asset-name">Wrapped Ether</span><span class="asset-badge">live</span></label>' +
+      '</div>' +
+      '<div class="amount-options" id="amountOptions">' +
+        '<div class="load-opt" data-amt="10"><div class="am">$10</div><div class="ap">min load</div></div>' +
+        '<div class="load-opt" data-amt="20"><div class="am">$20</div><div class="ap"></div></div>' +
+        '<div class="load-opt" data-amt="50"><div class="am">$50</div><div class="ap"></div></div>' +
+        '<div class="load-opt" data-amt="100"><div class="am">$100</div><div class="ap"></div></div>' +
+        '<div class="load-opt" data-amt="250"><div class="am">$250</div><div class="ap"></div></div>' +
+      '</div>' +
+      '<button class="modal-cta" id="modalNext" disabled>CONTINUE →</button>' +
+      '<div class="modal-note">Deposit goes to the Hybrid Cash treasury. Card balance issued after onchain confirmation.</div>';
+  }
+
+  function rebindStep1(){
+    // asset selection
+    document.querySelectorAll('.asset-opt input').forEach(function(input){
+      input.addEventListener('change', function(){
+        selectedAsset = input.value;
+        document.querySelectorAll('.asset-opt').forEach(function(l){
+          l.classList.toggle('sel', l.querySelector('input').checked);
+        });
+      });
+    });
+    // amount selection
+    document.querySelectorAll('#amountOptions .load-opt').forEach(function(o){
       o.addEventListener('click', function(){
-        loadOpts.forEach(function(x){ x.classList.remove('sel'); });
+        document.querySelectorAll('#amountOptions .load-opt').forEach(function(x){ x.classList.remove('sel'); });
         o.classList.add('sel');
         selectedAmt = o.getAttribute('data-amt');
         document.getElementById('modalNext').disabled = false;
       });
     });
-    document.getElementById('modalNext').addEventListener('click', function(){
-      showStep2();
-    });
+    document.getElementById('modalNext').addEventListener('click', showStep2);
     document.getElementById('modalClose').addEventListener('click', closeModal);
   }
 
   function showStep2(){
     modalBody.innerHTML =
-      '<div class="modal-step" data-step="2">Step 2 / 2</div>' +
-      '<div class="modal-title">Reserve your card</div>' +
-      '<div class="modal-sub">Enter your email and we\'ll notify you the moment your card is ready. No spam, no nonsense.</div>' +
-      '<div class="modal-field">' +
-        '<label for="emailInput">Email address</label>' +
-        '<input type="email" id="emailInput" placeholder="you@example.com" autocomplete="email">' +
-      '</div>' +
-      '<button class="modal-cta" id="modalSubmit">RESERVE MY CARD →</button>' +
-      '<button class="modal-back" id="modalBack">← Back to amount</button>' +
-      '<div class="modal-note">You\'ll get a confirmation email with your card details.</div>';
-    document.getElementById('modalSubmit').addEventListener('click', function(){
-      submitCard();
-    });
-    document.getElementById('modalBack').addEventListener('click', function(){
-      resetModal();
-    });
+      '<div class="modal-step" data-step="2">Step 2 / 3</div>' +
+      '<div class="modal-title">Connect your wallet</div>' +
+      '<div class="modal-sub">Connect the wallet holding your ' + selectedAsset + ' on Robinhood Chain to continue.</div>' +
+      '<button class="modal-cta" id="modalConnect">CONNECT WALLET →</button>' +
+      '<div class="modal-note">We\'ll never move funds without your explicit signature.</div>';
+    document.getElementById('modalConnect').addEventListener('click', connectAndQuote);
     document.getElementById('modalClose').addEventListener('click', closeModal);
-    setTimeout(function(){
-      var inp = document.getElementById('emailInput');
-      if (inp) inp.focus();
-    }, 200);
   }
 
-  function submitCard(){
-    var email = document.getElementById('emailInput').value.trim();
-    var key = 'hc_waitlist';
-    var data = JSON.parse(localStorage.getItem(key) || '[]');
-    var ref = 'HC-' + String(Date.now()).slice(-6) + '-' + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
-    data.push({ email: email, amount: selectedAmt, ref: ref, at: Date.now() });
-    localStorage.setItem(key, JSON.stringify(data));
-    var count = data.length;
+  async function connectAndQuote(){
+    var btn = document.getElementById('modalConnect');
+    btn.disabled = true;
+    btn.textContent = 'REQUESTING QUOTE…';
+    try {
+      if (!window.ethereum) {
+        modalBody.innerHTML = '<div class="modal-title">No wallet detected</div><div class="modal-sub">Install a wallet that supports Robinhood Chain (e.g. Rabby, MetaMask) and connect it.</div><button class="modal-cta" id="modalRetry">RETRY</button>';
+        document.getElementById('modalRetry').addEventListener('click', showStep2);
+        return;
+      }
+      // request accounts
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+      // ensure chain 4663
+      try {
+        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x1237' }] });
+      } catch (e) {
+        if (e.code === 4902) {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: '0x1237',
+              chainName: 'Robinhood Chain',
+              nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+              rpcUrls: ['https://rpc.mainnet.chain.robinhood.com'],
+              blockExplorerUrls: ['https://robinhoodchain.blockscout.com'],
+            }],
+          });
+          await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x1237' }] });
+        }
+      }
+
+      // fetch quote from backend
+      btn.textContent = 'GENERATING QUOTE…';
+      var res = await fetch(API + '/api/quote', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ asset: selectedAsset, amountUsd: Number(selectedAmt) }),
+      });
+      var quote = await res.json();
+      if (!res.ok) throw new Error(quote.error || 'Could not create a quote');
+      quoteData = quote;
+
+      renderStep3();
+    } catch (e) {
+      modalBody.innerHTML =
+        '<div class="modal-title">Something went wrong</div>' +
+        '<div class="modal-sub" style="color:var(--red)">' + escapeHtml(e.message) + '</div>' +
+        '<button class="modal-cta" id="modalRetry">RETRY</button>';
+      document.getElementById('modalRetry').addEventListener('click', function(){ showStep2(); });
+    }
+  }
+
+  function renderStep3(){
+    var q = quoteData;
+    var display = Number(q.displayUnits) >= 0.001
+      ? q.displayUnits + ' ' + q.symbol
+      : (Number(q.amountUsd) / Number(q.priceUsd)).toFixed(6) + ' ' + q.symbol;
+    modalBody.innerHTML =
+      '<div class="modal-step" data-step="3">Step 3 / 3 — Review & pay</div>' +
+      '<div class="modal-title">Confirm your deposit</div>' +
+      '<div class="modal-sub">You\'re depositing crypto to the Hybrid Cash treasury. Review the amount, then approve in your wallet.</div>' +
+      '<div class="pay-summary">' +
+        '<div class="pay-row"><span class="k">Amount</span><span class="v">' + display + '</span></div>' +
+        '<div class="pay-row"><span class="k">USD value</span><span class="v">$' + Number(q.amountUsd).toFixed(2) + '</span></div>' +
+        '<div class="pay-row"><span class="k">Treasury</span><span class="v mono">' + shortAddr(q.to) + '</span></div>' +
+        '<div class="pay-row"><span class="k">Chain</span><span class="v">Robinhood (4663)</span></div>' +
+      '</div>' +
+      '<button class="modal-cta" id="modalPay">PAY ' + display + '</button>' +
+      '<button class="modal-back" id="modalBack">← Back</button>' +
+      '<div class="modal-note">Transaction is pre-filled — you approve it in your wallet. Nothing is moved without your signature.</div>';
+    document.getElementById('modalPay').addEventListener('click', payAndConfirm);
+    document.getElementById('modalBack').addEventListener('click', function(){ resetModal(); });
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+  }
+
+  async function payAndConfirm(){
+    var btn = document.getElementById('modalPay');
+    btn.disabled = true;
+    btn.textContent = 'WAITING FOR YOUR WALLET…';
+    try {
+      var q = quoteData;
+      var from = (await window.ethereum.request({ method: 'eth_requestAccounts' }))[0];
+
+      // send transaction
+      var tx;
+      if (q.token_address) {
+        // ERC20 transfer to treasury
+        var data = encodeTransfer(q.token_address, q.to, q.units);
+        tx = await window.ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [{
+            from: from,
+            to: q.token_address,
+            data: data,
+          }],
+        });
+      } else {
+        // native ETH
+        tx = await window.ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [{ from: from, to: q.to, value: '0x' + BigInt(q.units).toString(16) }],
+        });
+      }
+
+      btn.textContent = 'PAYMENT SENT — VERIFYING…';
+      renderWaiting(tx);
+      // poll backend confirm
+      var ok = false;
+      for (var i = 0; i < 30; i++) {
+        await sleep(2000);
+        var res = await fetch(API + '/api/confirm', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ intent: q.intent, txHash: tx }),
+        });
+        var data = await res.json();
+        if (data.status === 'done') { ok = true; renderSuccess(data, tx); break; }
+        if (data.status === 'expired') break;
+      }
+      if (!ok) {
+        renderWaiting(tx, true);
+      }
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = 'PAY ' + (quoteData ? quoteData.displayUnits + ' ' + quoteData.symbol : '');
+      modalBody.innerHTML =
+        '<div class="modal-title">Transaction failed</div>' +
+        '<div class="modal-sub" style="color:var(--red)">' + escapeHtml(e.message) + '</div>' +
+        '<button class="modal-cta" id="modalRetry">TRY AGAIN</button>';
+      document.getElementById('modalRetry').addEventListener('click', function(){ renderStep3(); });
+    }
+  }
+
+  function renderWaiting(tx, timedOut){
+    modalBody.innerHTML =
+      '<div class="modal-success">' +
+        '<div class="spinner" aria-hidden="true"></div>' +
+        '<h3>' + (timedOut ? 'Still verifying…' : 'Verifying your payment') + '</h3>' +
+        '<p>' + (timedOut ? 'Your transaction was sent and is safe. It\'s taking a little longer than usual to confirm onchain.' : 'Waiting for the network to confirm your deposit. This usually takes a few seconds.') + '</p>' +
+        '<div class="ref">' + shortAddr(tx) + '</div>' +
+        (timedOut ? '<button class="modal-cta" id="modalCheck" style="margin-top:16px">CHECK AGAIN</button>' : '') +
+      '</div>';
+    if (timedOut) {
+      document.getElementById('modalCheck').addEventListener('click', function(){
+        renderWaiting(tx, false);
+        setTimeout(function(){
+          fetch(API + '/api/confirm', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ intent: quoteData.intent, txHash: tx }),
+          }).then(function(r){ return r.json(); }).then(function(data){
+            if (data.status === 'done') renderSuccess(data, tx);
+          }).catch(function(){});
+        }, 3000);
+      });
+    }
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+  }
+
+  function renderSuccess(data, tx){
     modalBody.innerHTML =
       '<div class="modal-success">' +
         '<div class="check">✓</div>' +
-        '<h3>You\'re on the list!</h3>' +
-        '<p>Your virtual card is reserved and will be issued as soon as the queue reaches you. We\'ll email <strong>' + escapeHtml(email) + '</strong> with the next step.</p>' +
-        '<div class="ref">' + ref + '</div>' +
-        '<div class="waitlist-count">' + count + ' people ahead of you</div>' +
+        '<h3>Your card is funded!</h3>' +
+        '<p>Deposit confirmed onchain. Your Hybrid Cash card balance is being issued now — check your email / dashboard shortly.</p>' +
+        '<div class="ref">' + (data.cardId || 'card_ready') + '</div>' +
         '<button class="modal-cta" id="modalDone" style="margin-top:16px">DONE</button>' +
       '</div>';
     document.getElementById('modalDone').addEventListener('click', closeModal);
     document.getElementById('modalClose').addEventListener('click', closeModal);
   }
 
+  // minimal ERC20 transfer encoding (function transfer(address,uint256))
+  function encodeTransfer(tokenAddr, to, units){
+    var methodId = 'a9059cbb';
+    var toHex = to.slice(2).toLowerCase().padStart(64, '0');
+    var amtHex = BigInt(units).toString(16).padStart(64, '0');
+    return '0x' + methodId + toHex + amtHex;
+  }
+
+  function shortAddr(a){
+    return a.slice(0, 6) + '…' + a.slice(-4);
+  }
   function escapeHtml(s){
     var d = document.createElement('div');
     d.appendChild(document.createTextNode(s));
     return d.innerHTML;
   }
+  function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
 
   // Close on overlay click + escape
   modal.addEventListener('click', function(e){
