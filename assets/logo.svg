@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 120" width="520" height="120">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00FF41"/><stop offset="100%" stop-color="#00b32e"/>
+    </linearGradient>
+    <filter id="f"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="520" height="120" fill="transparent"/>
+  <!-- ring -->
+  <circle cx="60" cy="60" r="42" fill="none" stroke="url(#g)" stroke-width="7" filter="url(#f)"/>
+  <!-- card -->
+  <rect x="30" y="42" width="60" height="40" rx="8" fill="#0c120d" stroke="#00FF41" stroke-width="2"/>
+  <!-- H -->
+  <g stroke="#00FF41" stroke-width="3.5" stroke-linecap="round" fill="none">
+    <path d="M42 50 L42 74"/><path d="M54 50 L54 74"/><line x1="42" y1="62" x2="54" y2="62"/>
+  </g>
+  <!-- coins -->
+  <circle cx="70" cy="57" r="5" fill="none" stroke="#00FF41" stroke-width="2"/>
+  <circle cx="79" cy="57" r="5" fill="none" stroke="#00FF41" stroke-width="2"/>
+  <!-- wordmark -->
+  <text x="120" y="70" font-family="DejaVu Sans Mono, monospace" font-weight="bold" font-size="42" fill="#00FF41" letter-spacing="3">HYBRID CASH</text>
+  <text x="120" y="94" font-family="DejaVu Sans Mono, monospace" font-size="12" fill="#8A8F98" letter-spacing="7">$HCASH</text>
+</svg>
