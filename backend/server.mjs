@@ -99,6 +99,33 @@ app.use((req, res, next) => {
   next();
 });
 
+// ---- in-memory user store ----
+const users = new Map();
+
+// POST /api/user — save user after sign-in
+app.post('/api/user', (req, res) => {
+  const { address, signedAt, signature } = req.body || {};
+  if (!address) return res.status(400).json({ error: 'Address required' });
+  const addr = address.toLowerCase();
+  const existing = users.get(addr);
+  users.set(addr, {
+    address: addr,
+    signedAt: signedAt || Date.now(),
+    signature: signature || '',
+    createdAt: existing ? existing.createdAt : Date.now(),
+    lastSeen: Date.now(),
+  });
+  res.json({ ok: true, address: addr });
+});
+
+// GET /api/user/:address — check if user exists
+app.get('/api/user/:address', (req, res) => {
+  const addr = req.params.address.toLowerCase();
+  const user = users.get(addr);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  res.json(user);
+});
+
 // GET /api/assets
 app.get('/api/assets', (req, res) => {
   res.json({ treasury: TREASURY, assets: Object.values(ASSETS) });
