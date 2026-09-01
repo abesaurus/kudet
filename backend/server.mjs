@@ -31,8 +31,9 @@ const WAD = 1e18;
 const MAX_SAMPLES = 7;
 const COOLDOWN = 60;            // seconds between keeper samples
 const MAX_JUMP_BPS = 1000;      // 10%
-const DEC = 18;                 // HYBRID decimals
+const DEC = 18;                 // HYBRID/ETH decimals
 const USDG_DEC = 6;             // USDG decimals
+const ETH_PRICE = 2447.27;      // ETH price in USD (for testing)
 
 // ── default state ──
 const defaultState = () => ({
@@ -45,7 +46,7 @@ const defaultState = () => ({
   samples: [1.0],               // HYBRID ≈ $1.00 (USDG per HYBRID)
   lastSampleAt: Date.now(),
   positions: {},                // addr -> { collateral, debt } (HYBRID / USDG units)
-  balances: {},                 // addr -> { HYBRID, USDG } — test balances (since no deployed token)
+  balances: {},                // addr -> { HYBRID, USDG, ETH } — test balances (since no deployed token)
 });
 
 // load state
@@ -100,23 +101,25 @@ function totalCollateral() {
 
 // position of a user (live-computed)
 function positionOf(addr) {
-  const p = state.positions[addr] || { collateral: 0, debt: 0 };
-  const price = protectedPrice();
+  const p = state.positions[addr] || { collateral: 0, debt: 0, asset: 'HYBRID' };
+  const asset = p.asset || 'HYBRID';
+  const price = asset === 'ETH' ? ETH_PRICE : protectedPrice();
   const collValue = p.collateral * price;
   const ltv = collValue > 0 ? (p.debt / collValue) * 100 : 0;
   return {
     address: addr,
+    asset,
     collateral: p.collateral,
     debt: p.debt,
-    ltv: ltv,
+    ltv,
     price,
     redeemable: p.debt > 0 && p.collateral > 0 ? p.collateral : 0,
   };
 }
 
 function getOrInit(addr) {
-  if (!state.positions[addr]) state.positions[addr] = { collateral: 0, debt: 0 };
-  if (!state.balances[addr]) state.balances[addr] = { HYBRID: 0, USDG: 0 };
+  if (!state.positions[addr]) state.positions[addr] = { collateral: 0, debt: 0, asset: 'HYBRID' };
+  if (!state.balances[addr]) state.balances[addr] = { HYBRID: 0, USDG: 0, ETH: 0 };
   return state.positions[addr];
 }
 
@@ -181,17 +184,19 @@ app.get('/api/usdg-balance/:address', (req, res) => {
 // ---- borrow (deposit + borrow) ----
 app.post('/api/borrow', (req, res) => {
   try {
-    const { address, collateralAmount } = req.body || {};
+    const { address, collateralAmount, asset = 'HYBRID' } = req.body || {};
     const addr = norm(address);
     if (!addr || !/^0x[0-9a-f]{40}$/.test(addr)) return res.status(400).json({ error: 'Invalid address' });
     const amount = Number(collateralAmount);
     if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ error: 'Invalid collateral amount' });
+    const a = String(asset).toUpperCase();
+    if (!['HYBRID', 'ETH'].includes(a)) return res.status(400).json({ error: 'Collateral asset must be HYBRID or ETH' });
 
     getOrInit(addr);
-    const bal = state.balances[addr].HYBRID;
-    if (amount > bal) return res.status(400).json({ error: `Insufficient HYBRID balance (${round(bal,4)} available)` });
+    const bal = state.balances[addr][a];
+    if (amount > bal) return res.status(400).json({ error: `Insufficient ${a} balance (${round(bal,4)} available)` });
 
-    const price = protectedPrice();
+    const price = a === 'ETH' ? ETH_PRICE : protectedPrice();
     const collValue = amount * price;
     const maxBorrow = collValue * (state.maxLtvBps / BPS);
     const availableLiquidity = Math.max(0, state.debtCap - totalDebt());
@@ -202,10 +207,11 @@ app.post('/api/borrow', (req, res) => {
     const fee = grossDebt * (state.feeBps / BPS);
     const netUsdg = grossDebt - fee;
 
-    state.balances[addr].HYBRID -= amount;
+    state.balances[addr][a] -= amount;
     state.balances[addr].USDG += netUsdg;
     state.positions[addr].collateral += amount;
     state.positions[addr].debt += grossDebt;
+    state.positions[addr].asset = a;
     persist();
 
     res.json({ ok: true, ...positionOf(addr), netUsdg: round(netUsdg, 6), fee: round(fee, 6), grossDebt: round(grossDebt, 6), balances: state.balances[addr] });
@@ -247,10 +253,11 @@ app.post('/api/repay', (req, res) => {
       // not enough USDG in test balance — allow but clamp (flag)
       state.balances[addr].USDG = Math.max(0, state.balances[addr].USDG);
     }
-    state.balances[addr].HYBRID += collateralOut;
+    const asset = p.asset || 'HYBRID';
+    state.balances[addr][asset] += collateralOut;
     persist();
 
-    res.json({ ok: true, ...positionOf(addr), repayAmount: round(applied, 6), collateralOut: round(collateralOut, 4), balances: state.balances[addr] });
+    res.json({ ok: true, ...positionOf(addr), repayAmount: round(applied, 6), collateralOut: round(collateralOut, 4), asset, balances: state.balances[addr] });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -289,7 +296,7 @@ app.post('/api/faucet', (req, res) => {
   const amt = Number(amount);
   if (!Number.isFinite(amt) || amt <= 0) return res.status(400).json({ error: 'Invalid amount' });
   const a = String(asset || '').toUpperCase();
-  if (!['HYBRID', 'USDG'].includes(a)) return res.status(400).json({ error: 'Asset must be HYBRID or USDG' });
+  if (!['HYBRID', 'USDG', 'ETH'].includes(a)) return res.status(400).json({ error: 'Asset must be HYBRID, USDG, or ETH' });
   getOrInit(addr);
   state.balances[addr][a] += amt;
   persist();

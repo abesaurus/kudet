@@ -31,6 +31,7 @@ export default function Page() {
 
   // ── form state ──
   const [borrowInput, setBorrowInput] = useState('0.00');
+  const [borrowAsset, setBorrowAsset] = useState('HYBRID');
   const [borrowCalc, setBorrowCalc] = useState({ receive: '0.00', fee: '—', maxline: '—', ltv: '0%' });
   const [repayInput, setRepayInput] = useState('0.00');
   const [repayCalc, setRepayCalc] = useState({ redeem: '0.00', remDebt: '0 USDG', remColl: '0 HYBRID' });
@@ -194,7 +195,7 @@ export default function Page() {
     }
     setBusy(true);
     try {
-      const r = await api('/borrow', { method: 'POST', body: JSON.stringify({ address: walletAddress, collateralAmount: amt }) });
+      const r = await api('/borrow', { method: 'POST', body: JSON.stringify({ address: walletAddress, collateralAmount: amt, asset: borrowAsset }) });
       if (r.error) {
         alert(r.error);
         return;
@@ -203,7 +204,7 @@ export default function Page() {
       await refreshPosition();
       setBorrowInput('0.00');
       setBorrowCalc({ receive: '0.00', fee: '—', maxline: '—', ltv: '0%' });
-      alert('✅ Borrowed ' + fmt(r.netUsdg) + ' USDG from ' + fmt(amt) + ' HYBRID collateral!');
+      alert('✅ Borrowed ' + fmt(r.netUsdg) + ' USDG from ' + fmt(amt) + ' ' + borrowAsset + ' collateral!');
     } catch (e) {
       alert('Error: ' + e.message);
     } finally {
@@ -239,9 +240,9 @@ export default function Page() {
 
   const handleFaucet = async () => {
     try {
-      const r = await api('/faucet', { method: 'POST', body: JSON.stringify({ address: walletAddress, asset: 'HYBRID', amount: 10000 }) });
+      const r = await api('/faucet', { method: 'POST', body: JSON.stringify({ address: walletAddress, asset: borrowAsset, amount: borrowAsset === 'ETH' ? 10 : 10000 }) });
       if (r.ok) {
-        alert('✅ Got 10,000 HYBRID test tokens!');
+        alert('✅ Got test ' + borrowAsset + (borrowAsset === 'ETH' ? ' (10 ETH)' : ' (10,000)!'));
         refreshPosition();
       }
     } catch (e) {
@@ -253,7 +254,7 @@ export default function Page() {
     if (!walletAddress) return;
     try {
       const v = await api('/position/' + walletAddress);
-      const b = (v.balances && v.balances.HYBRID) || 0;
+      const b = (v.balances && v.balances[borrowAsset]) || 0;
       const val = b.toLocaleString('en-US', { maximumFractionDigits: 2 });
       setBorrowInput(val);
       recalcBorrow(val);
