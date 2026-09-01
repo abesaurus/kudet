@@ -6,3 +6,9 @@ pk.txt
 web/.next/
 web/node_modules/
 .env
+dist/
+lending-state.json
+backend/lending-state.json
+vite/
+index.html
+package-lock.json

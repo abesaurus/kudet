@@ -1,14 +1,19 @@
 {
-  "name": "hybrid-cash-landing",
-  "version": "1.0.0",
+  "name": "hybrid-cash",
+  "version": "2.0.0",
   "private": true,
-  "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "next dev -p 4191",
+    "build": "next build",
+    "start": "next start -p 4191"
   },
   "dependencies": {
-    "vite": "^8.2.2"
+    "next": "^15.2.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "solc": "^0.8.28"
   }
 }

@@ -1,96 +1,129 @@
 /**
- * Hybrid Cash backend — crypto checkout
- * Users deposit USDG/ETH to a treasury wallet; the backend verifies
- * the deposit on-chain and marks the card "funded".
+ * Hybrid Cash — Lending backend
+ * Deposit HYBRID → borrow USDG (LTV 50%, fee 3%, no liquidation,
+ * keeper price, proportional redeem).
  *
- * Real RPC: Robinhood Chain 4663 (Hood Chain)
+ * State is persisted to lending-state.json so the vault is "live"
+ * across restarts (on-chain wiring swaps in once the proxy deploys).
+ *
+ * Endpoints:
+ *   GET  /api/vault                 → vault stats
+ *   GET  /api/position/:address     → user position
+ *   POST /api/borrow                → { address, collateralAmount }
+ *   POST /api/repay                 → { address, repayAmount }
+ *   POST /api/price                 → { price }   (keeper set sample)
+ *   GET  /api/hybrid-balance/:addr  → HYBRID balance (for MAX button)
+ *   GET  /api/usdg-balance/:addr    → USDG balance (for MAX button)
+ *   POST /api/faucet                → { address, asset: 'HYBRID'|'USDG', amount } (test top-up)
  */
 import express from 'express';
-import { createPublicClient, http, parseUnits, formatUnits } from 'viem';
-import { defineChain } from 'viem';
+import { writeFileSync, readFileSync, existsSync } from 'fs';
+import { fileURLToPath } from 'url';
+import path from 'path';
 
-// ---- config ----
-const PORT = process.env.PORT || 4200;
-const TREASURY = (process.env.TREASURY_ADDRESS || '').toLowerCase();
-const RPC_URL = process.env.RPC_URL || 'https://rpc.mainnet.chain.robinhood.com';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const PORT = process.env.PORT || 4190;
+const STATE_FILE = path.join(__dirname, 'lending-state.json');
 
-if (!TREASURY || TREASURY === '0x0000000000000000000000000000000000000000') {
-  console.error('❌ TREASURY_ADDRESS not set in .env — deposits have nowhere to go.');
-  process.exit(1);
-}
+// ── protocol constants (mirror HybridLending.sol) ──
+const BPS = 10000;
+const WAD = 1e18;
+const MAX_SAMPLES = 7;
+const COOLDOWN = 60;            // seconds between keeper samples
+const MAX_JUMP_BPS = 1000;      // 10%
+const DEC = 18;                 // HYBRID decimals
+const USDG_DEC = 6;             // USDG decimals
 
-// ---- chain ----
-const hoodChain = defineChain({
-  id: 4663,
-  name: 'Robinhood Chain',
-  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-  rpcUrls: { default: { http: [RPC_URL] } },
+// ── default state ──
+const defaultState = () => ({
+  version: 2,
+  feeBps: 300,
+  maxLtvBps: 5000,
+  safetyFactorBps: 9500,
+  debtCap: 100000,              // 100k USDG
+  minBorrow: 0.01,
+  samples: [1.0],               // HYBRID ≈ $1.00 (USDG per HYBRID)
+  lastSampleAt: Date.now(),
+  positions: {},                // addr -> { collateral, debt } (HYBRID / USDG units)
+  balances: {},                 // addr -> { HYBRID, USDG } — test balances (since no deployed token)
 });
 
-const publicClient = createPublicClient({ chain: hoodChain, transport: http(RPC_URL) });
+// load state
+let state = defaultState();
+if (existsSync(STATE_FILE)) {
+  try {
+    const saved = JSON.parse(readFileSync(STATE_FILE, 'utf8'));
+    state = { ...defaultState(), ...saved };
+    // ensure nested keys exist
+    state.positions = state.positions || {};
+    state.balances = state.balances || {};
+  } catch (e) {
+    console.error('⚠️  Failed to read state file, using defaults:', e.message);
+  }
+}
 
-// ---- supported assets (mirrors RWA Cash / on-chain verified) ----
-const ASSETS = {
-  USDG: {
-    symbol: 'USDG',
-    name: 'Global Dollar',
-    kind: 'stable',
-    address: '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168',
-    decimals: 6,
-    priceUsd: 1,
-    available: true,
-  },
-  ETH: {
-    symbol: 'ETH',
-    name: 'Ether',
-    kind: 'native',
-    address: null, // native
-    decimals: 18,
-    priceUsd: 2447.27, // fallback, refreshed from API
-    available: true,
-  },
-  WETH: {
-    symbol: 'WETH',
-    name: 'Wrapped Ether',
-    kind: 'crypto',
-    address: '0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73',
-    decimals: 18,
-    priceUsd: 2447.27,
-    available: true,
-  },
+function persist() {
+  try {
+    writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+  } catch (e) {
+    console.error('⚠️  Failed to persist state:', e.message);
+  }
+}
+
+// ── helpers ──
+const round = (n, dp = 6) => {
+  const f = 10 ** dp;
+  return Math.round(n * f) / f;
 };
 
-// ---- tiny in-memory store for payment intents ----
-// intentId -> { asset, units, to, status, txHash, createdAt }
-const intents = new Map();
-
-// ---- helpers ----
-const erc20Abi = [
-  { name: 'transfer', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: 'to', type: 'address' }, { name: 'value', type: 'uint256' }], outputs: [{ name: '', type: 'bool' }] },
-  { name: 'balanceOf', type: 'function', stateMutability: 'view', inputs: [{ name: '', type: 'address' }], outputs: [{ name: '', type: 'uint256' }] },
-];
-
-async function fetchEthPrice() {
-  // live price from dexscreener (same source RWA uses)
-  try {
-    const res = await fetch('https://api.dexscreener.com/latest/dex/tokens/0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73');
-    const data = await res.json();
-    const pairs = data?.pairs || [];
-    const usd = pairs.find(p => p.quoteToken?.symbol === 'USDG') || pairs.find(p => p.priceUsd);
-    if (usd && Number(usd.priceUsd) > 0) return Number(usd.priceUsd);
-  } catch (_) {}
-  return ASSETS.ETH.priceUsd; // fallback
+function sampleAvg() {
+  if (!state.samples.length) return 0;
+  return state.samples.reduce((a, b) => a + b, 0) / state.samples.length;
 }
 
-function generateIntentId() {
-  return 'HC-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+function protectedPrice() {
+  return sampleAvg() * (state.safetyFactorBps / BPS);
 }
 
-// ---- express ----
+function utilization() {
+  const debt = totalDebt();
+  return state.debtCap > 0 ? (debt / state.debtCap) * 100 : 0;
+}
+
+function totalDebt() {
+  return Object.values(state.positions).reduce((s, p) => s + (p.debt || 0), 0);
+}
+
+function totalCollateral() {
+  return Object.values(state.positions).reduce((s, p) => s + (p.collateral || 0), 0);
+}
+
+// position of a user (live-computed)
+function positionOf(addr) {
+  const p = state.positions[addr] || { collateral: 0, debt: 0 };
+  const price = protectedPrice();
+  const collValue = p.collateral * price;
+  const ltv = collValue > 0 ? (p.debt / collValue) * 100 : 0;
+  return {
+    address: addr,
+    collateral: p.collateral,
+    debt: p.debt,
+    ltv: ltv,
+    price,
+    redeemable: p.debt > 0 && p.collateral > 0 ? p.collateral : 0,
+  };
+}
+
+function getOrInit(addr) {
+  if (!state.positions[addr]) state.positions[addr] = { collateral: 0, debt: 0 };
+  if (!state.balances[addr]) state.balances[addr] = { HYBRID: 0, USDG: 0 };
+  return state.positions[addr];
+}
+
+// ── express ──
 const app = express();
 app.use(express.json());
 
-// CORS for the landing page
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
@@ -99,175 +132,174 @@ app.use((req, res, next) => {
   next();
 });
 
-// ---- in-memory user store ----
-const users = new Map();
+const norm = (a = '') => String(a).toLowerCase();
 
-// POST /api/user — save user after sign-in
-app.post('/api/user', (req, res) => {
-  const { address, signedAt, signature } = req.body || {};
-  if (!address) return res.status(400).json({ error: 'Address required' });
-  const addr = address.toLowerCase();
-  const existing = users.get(addr);
-  users.set(addr, {
-    address: addr,
-    signedAt: signedAt || Date.now(),
-    signature: signature || '',
-    createdAt: existing ? existing.createdAt : Date.now(),
-    lastSeen: Date.now(),
+// ---- vault stats ----
+app.get('/api/vault', (req, res) => {
+  const debt = totalDebt();
+  const coll = totalCollateral();
+  res.json({
+    liquidity: round(Math.max(0, state.debtCap - debt), 2),
+    debtOutstanding: round(debt, 6),
+    collateralHeld: round(coll, 4),
+    utilization: round(debt / state.debtCap * 100, 2),
+    debtCap: state.debtCap,
+    maxLtvBps: state.maxLtvBps,
+    feeBps: state.feeBps,
+    safetyFactorBps: state.safetyFactorBps,
+    protectedPrice: round(protectedPrice(), 6),
+    samples: state.samples,
+    sampleCount: state.samples.length,
+    price: round(sampleAvg(), 6),
+    minBorrow: state.minBorrow,
+    status: 'operational',
+    deployed: false, // true once proxy live
   });
-  res.json({ ok: true, address: addr });
 });
 
-// GET /api/user/:address — check if user exists
-app.get('/api/user/:address', (req, res) => {
-  const addr = req.params.address.toLowerCase();
-  const user = users.get(addr);
-  if (!user) return res.status(404).json({ error: 'User not found' });
-  res.json(user);
+// ---- user position ----
+app.get('/api/position/:address', (req, res) => {
+  const addr = norm(req.params.address);
+  getOrInit(addr);
+  persist();
+  const p = positionOf(addr);
+  res.json({ ...p, balances: state.balances[addr] || { HYBRID: 0, USDG: 0 } });
 });
 
-// GET /api/assets
-app.get('/api/assets', (req, res) => {
-  res.json({ treasury: TREASURY, assets: Object.values(ASSETS) });
+// ---- HYBRID / USDG balance (test balances; real once token deploys) ----
+app.get('/api/hybrid-balance/:address', (req, res) => {
+  const addr = norm(req.params.address);
+  getOrInit(addr);
+  res.json({ address: addr, balance: state.balances[addr].HYBRID, decimals: DEC });
+});
+app.get('/api/usdg-balance/:address', (req, res) => {
+  const addr = norm(req.params.address);
+  getOrInit(addr);
+  res.json({ address: addr, balance: state.balances[addr].USDG, decimals: USDG_DEC });
 });
 
-// POST /api/quote  { asset: "USDG"|"ETH"|"WETH", amountUsd: number, kind?: "issue"|"topup" }
-app.post('/api/quote', async (req, res) => {
+// ---- borrow (deposit + borrow) ----
+app.post('/api/borrow', (req, res) => {
   try {
-    const { asset, amountUsd, kind = 'issue' } = req.body || {};
-    const meta = ASSETS[asset];
-    if (!meta || !meta.available) return res.status(400).json({ error: 'Unsupported asset' });
-    const amount = Number(amountUsd);
-    if (!Number.isFinite(amount) || amount < 10) {
-      return res.status(400).json({ error: 'Minimum load is $10.00' });
+    const { address, collateralAmount } = req.body || {};
+    const addr = norm(address);
+    if (!addr || !/^0x[0-9a-f]{40}$/.test(addr)) return res.status(400).json({ error: 'Invalid address' });
+    const amount = Number(collateralAmount);
+    if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ error: 'Invalid collateral amount' });
+
+    getOrInit(addr);
+    const bal = state.balances[addr].HYBRID;
+    if (amount > bal) return res.status(400).json({ error: `Insufficient HYBRID balance (${round(bal,4)} available)` });
+
+    const price = protectedPrice();
+    const collValue = amount * price;
+    const maxBorrow = collValue * (state.maxLtvBps / BPS);
+    const availableLiquidity = Math.max(0, state.debtCap - totalDebt());
+    const grossDebt = Math.min(maxBorrow, availableLiquidity);
+    if (grossDebt < state.minBorrow) {
+      return res.status(400).json({ error: `Below minimum borrow of ${state.minBorrow} USDG` });
     }
-    if (amount > 1000) return res.status(400).json({ error: 'Maximum load is $1,000.00 per top-up' });
+    const fee = grossDebt * (state.feeBps / BPS);
+    const netUsdg = grossDebt - fee;
 
-    // fee: $5 one-time for new cards, free for top-ups
-    const feeUsd = kind === 'topup' ? 0 : 5;
-    const totalUsd = amount + feeUsd;
+    state.balances[addr].HYBRID -= amount;
+    state.balances[addr].USDG += netUsdg;
+    state.positions[addr].collateral += amount;
+    state.positions[addr].debt += grossDebt;
+    persist();
 
-    // refresh ETH price when needed
-    if (meta.kind !== 'stable') {
-      meta.priceUsd = await fetchEthPrice();
-    }
-
-    // units to send (raw token amount) — covers load + fee
-    const units = parseUnits(
-      (totalUsd / meta.priceUsd).toFixed(meta.decimals),
-      meta.decimals
-    );
-
-    const intentId = generateIntentId();
-    intents.set(intentId, {
-      asset,
-      units: units.toString(),
-      to: TREASURY,
-      status: 'pending',
-      txHash: null,
-      createdAt: Date.now(),
-    });
-
-    res.json({
-      intent: intentId,
-      kind,
-      asset: meta.symbol,
-      token_address: meta.address,
-      decimals: meta.decimals,
-      symbol: meta.symbol,
-      priceUsd: meta.priceUsd,
-      amountUsd: amount,
-      feeUsd,
-      totalUsd,
-      units: units.toString(),
-      to: TREASURY,
-      // for display
-      displayUnits: formatUnits(units, meta.decimals),
-    });
+    res.json({ ok: true, ...positionOf(addr), netUsdg: round(netUsdg, 6), fee: round(fee, 6), grossDebt: round(grossDebt, 6), balances: state.balances[addr] });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// POST /api/confirm  { intent, txHash }
-// Polls until the tx is confirmed and the treasury received the funds.
-app.post('/api/confirm', async (req, res) => {
+// ---- repay (proportional redeem) ----
+app.post('/api/repay', (req, res) => {
   try {
-    const { intent, txHash } = req.body || {};
-    const intentData = intents.get(intent);
-    if (!intentData) return res.status(404).json({ error: 'Unknown intent' });
+    const { address, repayAmount } = req.body || {};
+    const addr = norm(address);
+    if (!addr || !/^0x[0-9a-f]{40}$/.test(addr)) return res.status(400).json({ error: 'Invalid address' });
+    const amount = Number(repayAmount);
+    if (!Number.isFinite(amount) || amount < 0) return res.status(400).json({ error: 'Invalid repay amount' });
 
-    if (intentData.status === 'done') {
-      return res.json({ status: 'done', cardId: intentData.cardId });
+    getOrInit(addr);
+    const p = state.positions[addr];
+    if (p.debt <= 0) return res.status(400).json({ error: 'No outstanding debt' });
+
+    let applied = Math.min(amount, p.debt);
+    if (applied === 0) return res.status(400).json({ error: 'Amount is zero' });
+
+    // if repaying all (or above), clear debt + return all collateral
+    let collateralOut;
+    if (applied >= p.debt) {
+      collateralOut = p.collateral;
+      p.debt = 0;
+      p.collateral = 0;
+    } else {
+      collateralOut = p.collateral * (applied / p.debt);
+      p.collateral -= collateralOut;
+      p.debt -= applied;
     }
-    if (Date.now() - intentData.createdAt > 15 * 60 * 1000) {
-      return res.status(408).json({ status: 'expired', error: 'Payment window expired' });
+
+    state.balances[addr].USDG -= applied;
+    if (state.balances[addr].USDG < 0) {
+      // not enough USDG in test balance — allow but clamp (flag)
+      state.balances[addr].USDG = Math.max(0, state.balances[addr].USDG);
     }
+    state.balances[addr].HYBRID += collateralOut;
+    persist();
 
-    // verify on-chain
-    try {
-      const receipt = await publicClient.getTransactionReceipt({ hash: txHash });
-      if (!receipt) {
-        return res.status(202).json({ status: 'pending', reason: 'Waiting for confirmation…' });
-      }
-      if (receipt.status !== 'success') {
-        return res.status(202).json({ status: 'pending', reason: 'Transaction not confirmed yet' });
-      }
-
-      const meta = ASSETS[intentData.asset];
-      let received = false;
-
-      if (meta.address) {
-        // ERC20: find Transfer event to treasury with amount >= units
-        const logs = receipt.logs || [];
-        for (const log of logs) {
-          if (log.address && log.address.toLowerCase() === meta.address.toLowerCase()) {
-            const topics = log.topics || [];
-            if (topics.length >= 3) {
-              const from = topics[1]?.slice(-40)?.toLowerCase();
-              const to = topics[2]?.slice(-40)?.toLowerCase();
-              const amount = BigInt(log.data || '0x0');
-              if (to === TREASURY && amount >= BigInt(intentData.units)) {
-                received = true;
-                break;
-              }
-            }
-          }
-        }
-      } else {
-        // native ETH: check tx.to === treasury and value >= units
-        const tx = await publicClient.getTransaction({ hash: txHash });
-        if (tx && tx.to && tx.to.toLowerCase() === TREASURY && tx.value >= BigInt(intentData.units)) {
-          received = true;
-        }
-      }
-
-      if (received) {
-        intentData.status = 'done';
-        intentData.txHash = txHash;
-        intentData.cardId = 'card_' + intent.replace(/[^A-Z0-9]/gi, '').toLowerCase();
-        return res.json({
-          status: 'done',
-          cardId: intentData.cardId,
-          pendingFundUsd: intentData.amountUsd,
-        });
-      }
-
-      return res.status(202).json({ status: 'pending', reason: 'Waiting for the network to confirm it…' });
-    } catch (e) {
-      // tx not yet on chain / rpc hiccup
-      return res.status(202).json({ status: 'pending', reason: 'Waiting for the network to confirm it…' });
-    }
+    res.json({ ok: true, ...positionOf(addr), repayAmount: round(applied, 6), collateralOut: round(collateralOut, 4), balances: state.balances[addr] });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// health
-app.get('/health', (req, res) => res.json({ ok: true, chain: 4663, treasury: TREASURY }));
+// ---- keeper set price sample ----
+app.post('/api/price', (req, res) => {
+  try {
+    const { price } = req.body || {};
+    const p = Number(price);
+    if (!Number.isFinite(p) || p <= 0) return res.status(400).json({ error: 'Invalid price' });
+    const now = Date.now();
+    if (now - state.lastSampleAt < COOLDOWN * 1000) {
+      return res.status(429).json({ error: `Cooldown active (${Math.ceil((COOLDOWN - (now - state.lastSampleAt) / 1000))}s left)` });
+    }
+    const avg = sampleAvg();
+    if (state.samples.length > 0) {
+      const diff = Math.abs(p - avg);
+      if ((diff * BPS) / avg > MAX_JUMP_BPS) return res.status(400).json({ error: 'Jump too big (>10%)' });
+    }
+    state.samples.push(p);
+    if (state.samples.length > MAX_SAMPLES) state.samples.shift();
+    state.lastSampleAt = now;
+    persist();
+    res.json({ ok: true, samples: state.samples, price: round(sampleAvg(), 6), protected: round(protectedPrice(), 6) });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ---- faucet (test top-up so users can try the flow) ----
+app.post('/api/faucet', (req, res) => {
+  const { address, asset, amount } = req.body || {};
+  const addr = norm(address);
+  if (!addr || !/^0x[0-9a-f]{40}$/.test(addr)) return res.status(400).json({ error: 'Invalid address' });
+  const amt = Number(amount);
+  if (!Number.isFinite(amt) || amt <= 0) return res.status(400).json({ error: 'Invalid amount' });
+  const a = String(asset || '').toUpperCase();
+  if (!['HYBRID', 'USDG'].includes(a)) return res.status(400).json({ error: 'Asset must be HYBRID or USDG' });
+  getOrInit(addr);
+  state.balances[addr][a] += amt;
+  persist();
+  res.json({ ok: true, address: addr, asset: a, balance: state.balances[addr][a] });
+});
+
+app.get('/health', (req, res) => res.json({ ok: true, mode: 'lending', deployed: false, positions: Object.keys(state.positions).length }));
 
 app.listen(PORT, () => {
-  console.log(`✅ Hybrid Cash API on :${PORT}`);
-  console.log(`   Treasury: ${TREASURY}`);
-  console.log(`   Chain:    Robinhood (${hoodChain.id})`);
+  console.log(`✅ Hybrid Cash Lending API on :${PORT}`);
+  console.log(`   Price samples: ${state.samples.length} | Protected price: ${protectedPrice()}`);
+  console.log(`   State file: ${STATE_FILE}`);
 });
