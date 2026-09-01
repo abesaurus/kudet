@@ -354,7 +354,7 @@ export default function Page() {
                   fontSize: 10,
                 }}
               >
-                Pending deploy
+                0xbbea9aa55d3f9f3ef1686da2e67b1100b91fe5ba
               </span>
             </div>
             <h1>
@@ -462,7 +462,7 @@ export default function Page() {
                   <div className="info-item">
                     <div className="lbl">HYBRID CA</div>
                     <div className="val" style={{ fontSize: 11, fontFamily: "'JetBrains Mono',monospace", color: '#00C805' }}>
-                      Pending deploy
+                      0xbbea9aa55d3f9f3ef1686da2e67b1100b91fe5ba
                     </div>
                   </div>
                   <div className="info-item">
@@ -895,7 +895,7 @@ export default function Page() {
         }}
       >
         <div style={{ fontSize: 12, color: '#3a3d45' }}>HYBRID · Lending on Robinhood Chain</div>
-        <div style={{ fontSize: 11, color: '#3a3d45', fontFamily: "'JetBrains Mono',monospace" }}>CA: Pending deploy</div>
+        <div style={{ fontSize: 11, color: '#3a3d45', fontFamily: "'JetBrains Mono',monospace" }}>CA: 0xbbea9aa55d3f9f3ef1686da2e67b1100b91fe5ba</div>
         <div className="flex" style={{ gap: 20 }}>
           <a href="https://x.com/GetHybridCash" target="_blank" rel="noreferrer" style={{ color: '#4a4d55', textDecoration: 'none', fontSize: 13 }}>
             𝕏 @GetHybridCash
