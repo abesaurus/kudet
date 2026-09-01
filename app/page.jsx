@@ -630,10 +630,10 @@ export default function Page() {
               <button
                 className="btn btn-primary btn-block btn-lg mt-16"
                 id="borrow-btn"
-                disabled={!connected || busy}
+                disabled
                 onClick={handleBorrow}
               >
-                {!connected ? 'Connect wallet to continue' : busy ? 'Processing...' : 'Deposit & borrow'}
+                Soon
               </button>
               <button
                 className="btn btn-ghost btn-block mt-8"
