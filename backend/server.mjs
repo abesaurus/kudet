@@ -120,6 +120,7 @@ function positionOf(addr) {
 function getOrInit(addr) {
   if (!state.positions[addr]) state.positions[addr] = { collateral: 0, debt: 0, asset: 'HYBRID' };
   if (!state.balances[addr]) state.balances[addr] = { HYBRID: 0, USDG: 0, ETH: 0 };
+  if (state.balances[addr].ETH === undefined) state.balances[addr].ETH = 0;
   return state.positions[addr];
 }
 
